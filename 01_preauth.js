@@ -32,7 +32,9 @@ var postConfig = {
         server_callback_url: "http://energetika.projects.infoshell.ru:40687/"
     };
 
-function preauthForm (postConfig, postParams) {
+preauthForm(config, postConfig, postParams);
+
+function preauthForm (config, postConfig, postParams) {
     var data, log = '', post_req;
 
     postParams.control = getCheckSumm(config.endpointid, postParams.client_orderid, postParams.amount * 100, postParams.email, config.control);
