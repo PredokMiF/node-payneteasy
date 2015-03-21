@@ -16,7 +16,7 @@ var postConfig = {
         }
     },
 
-    params = {
+    postParams = {
         order_desc: "Оплата электроэнергии",
         client_orderid: '1', // id заказа в нашей базе
         address1: 'Client address',
