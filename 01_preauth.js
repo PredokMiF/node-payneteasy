@@ -1,6 +1,7 @@
 var https = require('https');
 var crypto = require('crypto');
 var querystring = require('querystring');
+var fs = require('fs');
 
 var config = {
     endpointid: 540,
@@ -23,13 +24,13 @@ var postConfig = {
         city: 'Kazan',
         zip_code: '420107',
         country: "RU",
-        phone: '+7(919)888-99-15',
+//        phone: '+7(919)888-99-15',
         email: 'grigorchuk.konstantin@gmail.com',
         amount: 123, // сумма
         currency: "RUB",
         ipaddress: '115.135.52.242',
-        redirect_url: "http://energetika.projects.infoshell.ru:40687/",
-        server_callback_url: "http://energetika.projects.infoshell.ru:40687/"
+        redirect_url: "http://energetika.projects.infoshell.ru:40687/redirect_url",
+//        server_callback_url: "http://energetika.projects.infoshell.ru:40687/"
     };
 
 preauthForm(config, postConfig, postParams);
@@ -53,14 +54,17 @@ function preauthForm (config, postConfig, postParams) {
                 out = out + chunk;
             });
             res.on('end', function () {
-                console.log('!!! end: ' + arguments);
+                console.log('!!! end: ');
+                console.log.apply(console, arguments);
+
                 console.log('Out as is:  ' + out);
+
                 out = querystring.parse(out);
-                console.log('Out parsed: ' + out);
+
                 Object.keys(out).forEach(function (key) {
                     out[key] = out[key].replace(/\n$/, '');
                 });
-                log += '______________response' + JSON.stringify(out, null, 4) + '\n\n';
+                log += '______________Out parsed+: ' + JSON.stringify(out, null, 4) + '\n\n';
                 writeLog(log);
             });
         }
@@ -92,5 +96,5 @@ function writeLog (data) {
         data,
         { encoding: 'utf8' }
     );
-    console.log(log);
+    console.log(data);
 }
