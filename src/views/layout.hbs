@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Енергетика: админка</title>
+    <link rel='stylesheet' href='/css/bootstrap.min.css'/>
+    <link rel='stylesheet' href='/css/bootstrap-theme.min.css'/>
+    <script src="/js/lodash-3.9.3.min.js"></script>
+    <script src="/js/jquery-2.1.4.min.js"></script>
+    <script src="/js/bootstrap.min.js"></script>
+</head>
+<body>
+
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-8" aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">NRJ Admin</a>
+            </div>
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-8">
+                <ul class="nav navbar-nav">
+                    <li><a href="/admin/region">Регионы</a></li>
+                    <li><a href="/admin/provider">Поставщики</a></li>
+                    <li><a href="/admin/upload">Загрузка</a></li>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div>
+    </nav>
+
+    <div class="container theme-showcase">
+        {{{body}}}
+    </div>
+</body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "name": "Сервер интеграции PaynetEasy",
+  "version": "0.0.1",
+  "description": "Описание REST методов сервера интегриции с аггрегатором \"PaynetEasy\""
+}

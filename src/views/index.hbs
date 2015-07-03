@@ -1,0 +1,43 @@
+<h1>Список активных платежей</h1>
+
+<table class="table table-striped"><tbody>
+<tr>
+    <th>пользователь</th>
+    <th>uuid транзакции</th>
+    <th>Стоимость</th>
+    <th>Действия</th>
+</tr>
+{{#each payments}}
+    <tr>
+        <td>{{userUuid}}</td>
+        <td class="transactionUuid">{{transactionUuid}}</td>
+        <td>{{initData.amount}}</td>
+        <td>
+            <button type="button" class="btn btn-default btn-xs pne-ok" aria-label="Left Align"><span class="glyphicon glyphicon-ok" aria-hidden="true"></span></button>
+            <button type="button" class="btn btn-default btn-xs pne-err" aria-label="Left Align"><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></button>
+        </td>
+    </tr>
+{{/each}}
+</tbody></table>
+
+<form id="myform" method="post">
+    <input type="hidden" name="transactionUuid">
+    <input type="hidden" name="result">
+</form>
+
+<script>
+    (function(){
+        $(document.body).on('click', '.pne-ok', btnCb);
+        $(document.body).on('click', '.pne-err', btnCb);
+
+        function btnCb (e) {
+            var $form = $('#myform'),
+                $btn = $(e.currentTarget);
+            $form.find('input[name=result]').val($btn.hasClass('pne-ok') ? 'ok' : 'cancel');
+            $form.find('input[name=transactionUuid]').val($btn.closest('tr').find('.transactionUuid').text());
+            $form.submit();
+        }
+    }());
+</script>
+
+
