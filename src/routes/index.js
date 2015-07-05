@@ -6,6 +6,7 @@ var request = require('request');
 
 var CONFIG = require(__cfg);
 
+var HandledError = require(__modulesCustom + 'handledError');
 var ApiSecurity = require(__modulesCustom + 'api-security');
 
 module.exports = function (app) {
@@ -32,11 +33,12 @@ module.exports = function (app) {
         reqQueryValidate: {},
         reqBodyValidate: {
             transactionUuid: 's reqKey min 1',
-            result: 'dict val ok,cancel'
+            result: 'dict reqKey val ok,cancel'
         }
     }, function (req, res, next) {
         return when.promise(function(resolve, reject){
-            var db = CONFIG.dbGetSync();
+            var db = CONFIG.dbGetSync(),
+                reqOut;
 
             _.forEach(db.payments, function(el){
                 var obj;
@@ -48,10 +50,19 @@ module.exports = function (app) {
 
                     if (req.body.result === 'ok') {
                         obj.state = el.state = 'done';
+                        reqOut = {
+                            state: 'ok',
+                            url: 'http://mydaomain.ru/pay?id=qweqweqwe'
+                        };
                     } else {
                         obj.state = el.state = 'error';
                         obj.errMsg = el.errMsg = 'Сообщение о какой то ошибке';
                         obj.errDesc = el.errDesc = 'Развернутое сообщение о какой то ошибке';
+                        reqOut = {
+                            state: 'error',
+                            errMsg: 'Сообщение о какой то ошибке',
+                            errCode: 'SOME_ERROR_CODE'
+                        };
                     }
 
                     request.post({
@@ -66,12 +77,19 @@ module.exports = function (app) {
                 }
             });
 
-            res.render('index', { payments: _.filter(db.payments, 'state', 'new') });
+            //res.render('index', { payments: _.filter(db.payments, 'state', 'new') });
 
             CONFIG.dbSetSync(db);
 
-            resolve();
-        });
+            //if (reqOut) {
+                resolve(reqOut);
+            //} else {
+            //    reject(new HandledError('', {ERROR_MSG_CODE: 'UNAUTHORIZED'}));
+            //}
+        })
+            .then(function(data){
+                res.send(data);
+            });
     }));
 
 };
