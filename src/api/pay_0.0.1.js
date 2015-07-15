@@ -45,6 +45,8 @@ module.exports = function (app) {
         reqUrlValidate: {},
         reqQueryValidate: {},
         reqBodyValidate: {
+            registerCard: 'b reqKey convert all',
+            cardUuid: 's min 1',
             userUuid: 's reqKey min 1',
             transactionUuid: 's reqKey min 1',
             country: 's reqKey min 2',
@@ -89,7 +91,7 @@ module.exports = function (app) {
 
             CONFIG.dbSetSync(db);
 
-            res.send({done: 'Ok!'});
+            res.send({url: 'http://pay.url.ru'});
 
             resolve();
         });
