@@ -3,18 +3,16 @@
 var CONFIG = {
 
     //DB_CONN_STR: 'postgres://postgres:1@localhost:5432/nrj',
-    //DB_CONN_OBJ: {
-    //    user: 'postgres',
-    //    password: '1',
-    //    database: 'nrj',
-    //    host: 'localhost',
-    //    port: 5432
-    //},
+    DB_CONN_OBJ: {
+        user: 'postgres',
+        password: '1',
+        database: 'payneteasy',
+        host: 'localhost',
+        port: 5432
+    },
 
     // Папка с dbUpdater скриптами
-    //DB_UPDATER_SRC: 'src/dao/dbUpdater'
-
-    TEMP_FILE_DB_PATH: 'cfg/db.json',
+    DB_UPDATER_SRC: 'src/dao/dbUpdater',
 
     PAYNETEASY: {
         //CLIENT_ORDER_ID: 'qwe'
