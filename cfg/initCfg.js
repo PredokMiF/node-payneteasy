@@ -49,8 +49,14 @@ module.exports = when.promise(function(resolve, reject){
             DB_UPDATER_SRC: Joi.string(),
 
             PAYNETEASY: Joi.object().keys({
+                ENDPOINTS: Joi.object().pattern(/\d+/i, Joi.object().keys({
+                    login: Joi.string().min(1).required(),
+                    endpoint: [Joi.string().min(1).required(), Joi.number().min(1).required()],
+                    hostname: Joi.string().min(1).required(),
+                    control: Joi.string().guid().required()
+                }).requiredKeys('login', 'endpoint', 'hostname', 'control'))
                 //CLIENT_ORDER_ID: Joi.string().min(1).max(128)
-            }),
+            }).requiredKeys('ENDPOINTS'),
 
             CLIENT_SERVER: Joi.object().keys({
                 DOMAIN: Joi.string().min(1),
@@ -79,17 +85,17 @@ module.exports = when.promise(function(resolve, reject){
     /* ================================================================================================= */
     /* ============================================= pgpLib ============================================ */
     /* ================================================================================================= */
-    .then(function () {
+    /*.then(function () {
         var pgp = pgpLib({
             promiseLib: when
         });
         CONFIG.db = pgp(CONFIG.DB_CONN);
-    })
+    })*/
 
     /* ================================================================================================= */
     /* =========================================== DbUpdater =========================================== */
     /* ================================================================================================= */
-    .then(function () {
+    /*.then(function () {
         var def = when.defer();
 
         var dbUpdater = DbUpdater({
@@ -110,8 +116,8 @@ module.exports = when.promise(function(resolve, reject){
         });
 
         return def.promise;
-    })
-    .then(function(){
+    })*/
+    /*.then(function(){
         return callMe.init(CONFIG.DB_CONN);
-    });
+    })*/;
 ;

@@ -16,6 +16,14 @@ var CONFIG = {
 
     PAYNETEASY: {
         //CLIENT_ORDER_ID: 'qwe'
+        ENDPOINTS: {
+            1: {
+                login: 'mylogin',
+                endpoint: 1,
+                hostname: 'sandbox.payneteasy.com',
+                control: '1ae8863f-42cf-48d1-8787-8601d832d51d'
+            }
+        }
     },
 
     CLIENT_SERVER: {
