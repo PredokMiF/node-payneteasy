@@ -19,7 +19,7 @@ var CONFIG = {
         ENDPOINTS: {
             1: {
                 login: 'mylogin',
-                endpoint: 1,
+                endpointid: 1,
                 hostname: 'sandbox.payneteasy.com',
                 control: '1ae8863f-42cf-48d1-8787-8601d832d51d'
             }

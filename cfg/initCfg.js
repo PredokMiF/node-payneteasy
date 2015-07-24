@@ -51,10 +51,10 @@ module.exports = when.promise(function(resolve, reject){
             PAYNETEASY: Joi.object().keys({
                 ENDPOINTS: Joi.object().pattern(/\d+/i, Joi.object().keys({
                     login: Joi.string().min(1).required(),
-                    endpoint: [Joi.string().min(1).required(), Joi.number().min(1).required()],
+                    endpointid: [Joi.string().min(1).required(), Joi.number().min(1).required()],
                     hostname: Joi.string().min(1).required(),
                     control: Joi.string().guid().required()
-                }).requiredKeys('login', 'endpoint', 'hostname', 'control'))
+                }).requiredKeys('login', 'endpointid', 'hostname', 'control'))
                 //CLIENT_ORDER_ID: Joi.string().min(1).max(128)
             }).requiredKeys('ENDPOINTS'),
 

@@ -21,72 +21,80 @@ require(__initCfg).then(
 
     // DEBUG START
     function(){
-        var preauthReq = require(__pne + 'preauthReq');
-        preauthReq(
-            815,
-            {
+        var reqData = {
 
-            // Перевод
+        // Перевод
 
-                // Transaction UUID (Пользовательский идентификатор заказа.) (128/String)
-                client_orderid: 'd9684b14-6ccc-48ec-b74c-d43a10eefd05', /* DATA REQUIRED */
-                // Сумма перевода. Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
-                amount: 1, /* DATA REQUIRED */
-                // НДС (сумма) (10/Numeric)
-                //'vat-amount': 0,
-                // Трехзначный код валюты платежа, например RUB (3/String)
-                currency: 'RUB',
-                // Назначение платежа (125/String)
-                'order_desc': 'order_desc!!!', /* DATA REQUIRED */
+            endpointid: 815,
+            // Transaction UUID (Пользовательский идентификатор заказа.) (128/String)
+            transactionUuid: '522a5e84-3193-41d1-9d7b-5921a1c20a8d', /* DATA REQUIRED */
+            // id транзакции у PayNetEasy. Появится после preauthRequest
+            pneId: '20769680',
+            // Сумма перевода (целевой платеж). Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
+            amount: 1, /* DATA REQUIRED */
+            // Сумма которую ПО зажимает себе. Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
+            comission: 0.5, /* DATA REQUIRED */
+            // НДС (сумма) (10/Numeric)
+            //NDS: 0,
+            // Трехзначный код валюты платежа, например RUB (3/String)
+            currency: 'RUB',
+            // Назначение платежа (125/String)
+            'order_desc': 'order_desc!', /* DATA REQUIRED */
 
-            // Плательщик
+        // Плательщик
 
-                // E-mail плательщика (128/String)
-                email: 'email@mail.ru', /* DATA REQUIRED */
-                // Телефон плательщика (15/String)
-                'phone': '', /* !!! */
-                // Полный телефон плательщика, вместе с кодом города (15/String)
-                'cell_phone': '', /* !!! */
-                // Код страны плательщика (2/String)
-                country: 'RU',
-                // Город плательщика (50/String)
-                city: 'city', /* !!! */
-                // Почтовый индекс плательщика (10/String)
-                zip_code: '000000', /* !!! */
-                // (50/String)
-                address1: 'address1!!!', /* !!! */
-                // IP адрес плательщика (20/String)
-                ipaddress: '127.0.0.0', /* !!! */
+            // Customer’s first name (50/String)
+            //payer_first_name: '',
+            // Customer’s last name (50/String)
+            //payer_last_name: '',
+            // Customer’s date of birth, in the format YYYYMMDD. (6/Numeric)
+            //payer_birthday: '',
+            // Last four digits of the customer’s social security number. (4/Numeric)
+            //payer_ssn: '',
+            // E-mail плательщика (128/String)
+            payer_email: 'email@mail.ru', /* DATA REQUIRED */
+            // Телефон плательщика (15/String)
+            //payer_phone: '',
+            // Полный телефон плательщика, вместе с кодом города (15/String)
+            //payer_cell_phone: '',
+            // Код страны плательщика (2/String)
+            payer_country: 'RU', /* DEFAULT */
+            // Customer’s state (two-letter US state code). Please see Appendix A for a list of valid US state codes. Not applicable outside the US. (2/String)
+            //payer_state: '',
+            // Город плательщика (50/String)
+            payer_city: 'city', /* DATA REQUIRED */
+            // Почтовый индекс плательщика (10/String)
+            payer_zip_code: '000000', /* DATA REQUIRED */
+            // (50/String)
+            payer_address1: 'address1!', /* DATA REQUIRED */
+            // IP адрес плательщика (20/String)
+            payer_ipaddress: '127.0.0.0', /* DATA REQUIRED */
 
-                // --- === UNUSED === --- //
-                //'first_name': '', // Customer’s first name (50/String)
-                //'last_name': '', // Customer’s last name (50/String)
-                //ssn: '', // Last four digits of the customer’s social security number. (4/Numeric)
-                //birthday: '', // Customer’s date of birth, in the format YYYYMMDD. (6/Numeric)
-                //state: '', // Customer’s state (two-letter US state code). Please see Appendix A for a list of valid US state codes. Not applicable outside the US. (2/String)
+        // Остальное
 
-            // Остальное
+            // URL the cardholder will be redirected to upon completion of the transaction. Please note that the cardholder will be redirected in any case, no matter whether the transaction is approved or declined. (128/String)
+            redirect_url: 'http://ya.ru' /* DATA REQUIRED */
+            // URL the original sale is made from. (128/String)
+            //site_url: ''
+            // URL the transaction result will be sent to. Merchant may use this URL for custom processing of the transaction completion, e.g. to collect sales data in Merchant’s database. See more details at Merchant Callbacks (128/String)
+            //server_callback_url: ''
+        };
 
-                // URL the cardholder will be redirected to upon completion of the transaction. Please note that the cardholder will be redirected in any case, no matter whether the transaction is approved or declined. (128/String)
-                redirect_url: 'http://ya.ru' /* DATA REQUIRED */
 
-                // --- === UNUSED === --- //
-                // URL the original sale is made from. (128/String)
-                //site_url: ''
-                // URL the transaction result will be sent to. Merchant may use this URL for custom processing of the transaction completion, e.g. to collect sales data in Merchant’s database. See more details at Merchant Callbacks (128/String)
-                //server_callback_url: ''
-            }
-        )
+
+        //var req = require(__pne + 'preauthReq');
+        var req = require(__pne + 'preauthStatusReq');
+        req(reqData)
             .then(
-            function(data){
-                console.log('data');
-                console.log(data);
-            },
-            function(err){
-                console.log('err');
-                console.log(err);
-            }
-        );
+                function(data){
+                    console.log('data');
+                    console.log(data);
+                },
+                function(err){
+                    console.log('err');
+                    console.log(err);
+                }
+            );
     },
     // DEBUG END
     function (err) {

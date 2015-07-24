@@ -39,7 +39,7 @@ function pneReq (cfg, cb) {
         throw new Error('PNE:pneReq invalid parameters');
     }
 
-    var path = cfg.path.replace('<endpointid>', endpointCfg.endpoint);
+    var path = cfg.path.replace('<endpointid>', endpointCfg.endpointid);
     var data = _.transform(cfg.data, function (result, val, key) { if (_.isNumber(val) || _.isString(val) && val.length) {result[key] = val;}});
     var controlFields = _.map(cfg.controlFields, function (val) { return _.isArray(val) ? (endpointCfg[val] || data[val]) : val; });
     data.control = sha1.SHA1(controlFields.join('')).toString();
@@ -59,13 +59,17 @@ function pneReq (cfg, cb) {
             out = out + chunk;
         });
         res.on('end', function () {
-            out = querystring.parse(out);
+            if (res.statusCode === 200) {
+                out = querystring.parse(out);
 
-            Object.keys(out).forEach(function (key) {
-                out[key] = out[key].replace(/\n$/, '');
-            });
+                Object.keys(out).forEach(function (key) {
+                    out[key] = out[key].replace(/\n$/, '');
+                });
 
-            cb(null, out);
+                cb(null, out);
+            } else {
+                cb(out, undefined);
+            }
         });
     });
 
