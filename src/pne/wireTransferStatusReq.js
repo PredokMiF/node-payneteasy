@@ -7,11 +7,11 @@ var CONFIG = require(__cfg);
 var pneReq = require('./req');
 
 /**
- * Если в ответе resolve({data: {status: 'approved', ...}}), то сохранить cardType, cardBankName, cardLastFourDigits в общих данных
+ *
  * @param data {Object}
- * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,preauthStatusPneId,status,processing,approved,data,card{cardType,bankName,lastFourDigits}}}
+ * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,wireTransferStatusPneId,status,processing,approved,data}}
  */
-function preauthStatusReq(data) {
+function wireTransferStatusReq(data) {
     // id терминала PNE
     var endpointid = data.endpointid;
     var endpoint = CONFIG.PAYNETEASY.ENDPOINTS[endpointid] || {};
@@ -19,7 +19,7 @@ function preauthStatusReq(data) {
     data = {
         login: endpoint.login,
         client_orderid: data.transactionUuid,
-        orderid: data.preauthPneId
+        orderid: data.wireTransferPneId
     };
 
     return when.promise(function(resolve, reject){
@@ -40,7 +40,7 @@ function preauthStatusReq(data) {
                         data: {
                             pneReqSerialNumber: data['serial-number'],
                             transactionUuid: data['merchant-order-id'],
-                            preauthStatusPneId: data['paynet-order-id'],
+                            wireTransferStatusPneId: data['paynet-order-id'],
                             status: data.status,
                             data: JSON.stringify(data)
                         }
@@ -48,11 +48,6 @@ function preauthStatusReq(data) {
 
                     if (data.status === 'approved') {
                         outData.data.approved = true;
-                        outData.data.card = {
-                            'cardType': data['card-type'],
-                            bankName: data['bank-name'],
-                            lastFourDigits: data['last-four-digits']
-                        }
                     } else {
                         outData.data.processing = true;
                     }
@@ -66,4 +61,4 @@ function preauthStatusReq(data) {
     });
 }
 
-module.exports = preauthStatusReq;
+module.exports = wireTransferStatusReq;

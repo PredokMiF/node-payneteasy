@@ -28,27 +28,45 @@ require(__initCfg).then(
 /* R */     endpointid: 815,
             // Transaction UUID (Пользовательский идентификатор заказа.) (128/String)
 /* R */     transactionUuid: '522a5e84-3193-41d1-9d7b-5921a1c20a8d', /* DATA REQUIRED */
-            // id транзакции у PayNetEasy. Появится после preauthRequest
-/* ПОТОМ */ pneId: '20796629',
+            // id транзакции у PayNetEasy. Появится после <кто-то>Request: preauthReq, captureReq, wireTransferReq, cardRegReq
+/* ПОТОМ */ preauthPneId: '20796629',
+/* ПОТОМ */ preauthStatusPneId: [],
+/* ПОТОМ */ capturePneId: '20796629',
+/* ПОТОМ */ captureStatusPneId: [],
+/* ПОТОМ */ wireTransferPneId: '20954407',
+/* ПОТОМ */ wireTransferStatusPneId: [],
+
+/* ПОТОМ */ returnPneId: '',
+/* ПОТОМ */ returnStatusPneId: [],
+
+/* ПОТОМ */ cardRegPneId: '',
             // Сумма перевода (целевой платеж). Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
 /* R */     amount: 10, /* DATA REQUIRED */
             // Сумма которую ПО зажимает себе. Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
 /* R */     comission: 0.5, /* DATA REQUIRED */
             // НДС (сумма) (10/Numeric)
-            //NDS: 0,
+/* D */     NDS: 0,
             // Трехзначный код валюты платежа, например RUB (3/String)
 /* D */     currency: 'RUB',
             // Назначение платежа (125/String)
-/* R */     'order_desc': 'order_desc!', /* DATA REQUIRED */
+/* R */     'order_desc': 'order_desc!',
+            // Комментарий отмеры транзакции (50/String)
+/* D */     returnComment: 'Transaction error',
 
         // Плательщик
 
+            // UUID плательщика
+/* R */     userUuid: 'qwe-qwe-qwe',
             // Customer’s first name (50/String)
             //payer_first_name: '',
             // Customer’s last name (50/String)
             //payer_last_name: '',
+            // ФИО плательщика (128/String)
+/* R */     payerFullname: 'Фио Фио Фиович',
             // Customer’s date of birth, in the format YYYYMMDD. (6/Numeric)
             //payer_birthday: '',
+            // Тип, серия и номер документа, удостоверяющего личность. Укажите нужный тип документа (2 цифры) + запятая + символы от 4 до 64 (64/String)
+/* R */     payerIdentityDocument: '01,1111123123',
             // Last four digits of the customer’s social security number. (4/Numeric)
             //payer_ssn: '',
             // E-mail плательщика (128/String)
@@ -71,6 +89,23 @@ require(__initCfg).then(
             // IP адрес плательщика (20/String)
 /* R */     payer_ipaddress: '127.0.0.0', /* DATA REQUIRED */
 
+        // Карта плательщика
+
+/* ПОТОМ */ cardType: 'VISA',
+/* ПОТОМ */ cardBankName: 'ALFA BANK',
+/* ПОТОМ */ cardLastFourDigits: '9651',
+
+        // Получатель
+
+            // Получатель платежа (255/String)
+/* R */     recipientName: 'recipient Name name',
+            // ИНН получателя (255/String)
+/* R */     recipientInn: '123123123',
+            // Номер счета получателя (20/Numeric)
+/* R */     recipientAccountNumber: '123123123',
+            // БИК банка получателя (9/Numeric)
+/* R */     recipientBankBic: '123123',
+
         // Остальное
 
             // URL the cardholder will be redirected to upon completion of the transaction. Please note that the cardholder will be redirected in any case, no matter whether the transaction is approved or declined. (128/String)
@@ -84,7 +119,15 @@ require(__initCfg).then(
 
 
         //var req = require(__pne + 'preauthReq');
-        var req = require(__pne + 'preauthStatusReq');
+        //var req = require(__pne + 'preauthStatusReq');
+        //var req = require(__pne + 'captureReq');
+        //var req = require(__pne + 'captureStatusReq');
+        //var req = require(__pne + 'wireTransferReq');
+        //var req = require(__pne + 'wireTransferStatusReq');
+
+        //var req = require(__pne + 'returnReq');
+        //var req = require(__pne + 'returnStatusReq');
+
         req(reqData)
             .then(
                 function(data){

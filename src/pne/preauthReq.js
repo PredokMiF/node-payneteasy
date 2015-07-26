@@ -5,10 +5,11 @@ var when = require('when');
 var pneReq = require('./req');
 
 /**
+ * HOLDирует средства на карте плательщика
  * Если в ответе resolve({data: {...}}), то сохранить pneId в общих данных, вернуть url
  * @param data {Object}
  * @param data.transactionUuid {String}
- * @returns {*}
+ * @returns {Deferred} reject(err), resolve(data) data {err:{msg,code,data}} || {data:{pneReqSerialNumber,transactionUuid,preauthPneId,url,data}}
  */
 function preauthReq(data) {
     // id терминала PNE
@@ -17,12 +18,13 @@ function preauthReq(data) {
     data = {
 
     // Перевод
+
         // Transaction UUID (Пользовательский идентификатор заказа.) (128/String)
         client_orderid: data.transactionUuid,
         // Сумма перевода. Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
         amount: data.amount + data.comission,
         // НДС (сумма) (10/Numeric)
-        'vat-amount': data.NDS,
+        'vat-amount': +data.NDS,
         // Трехзначный код валюты платежа, например RUB (3/String)
         currency: data.currency,
         // Назначение платежа (125/String)
@@ -77,14 +79,15 @@ function preauthReq(data) {
             if (err) {
                 reject(err && err.stack || err);
             } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code']}});
+                resolve({err: {msg: data['error-message'], code: data['error-code'], data: JSON.stringify(data)}});
             } else if (data.type === 'async-form-response') {
                 resolve({
                     data: {
-                        serialNumber: data['serial-number'],
+                        pneReqSerialNumber: data['serial-number'],
                         transactionUuid: data['merchant-order-id'],
-                        pneId: data['paynet-order-id'],
-                        url: data['redirect-url']
+                        preauthPneId: data['paynet-order-id'],
+                        url: data['redirect-url'],
+                        data: JSON.stringify(data)
                     }
                 });
             } else {
