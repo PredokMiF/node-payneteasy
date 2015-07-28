@@ -11,7 +11,7 @@ var pneReq = require('./req');
  * @param data {Object}
  * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,preauthStatusPneId,status,processing,approved,data,card{cardType,bankName,lastFourDigits}}}
  */
-function preauthStatusReq(data) {
+function makeRebillPreauthStatusReq(data) {
     // id терминала PNE
     var endpointid = data.endpointid;
     var endpoint = CONFIG && CONFIG.PAYNETEASY && CONFIG.PAYNETEASY.ENDPOINTS && CONFIG.PAYNETEASY.ENDPOINTS[endpointid] || {};
@@ -66,4 +66,4 @@ function preauthStatusReq(data) {
     });
 }
 
-module.exports = preauthStatusReq;
+module.exports = makeRebillPreauthStatusReq;

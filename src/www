@@ -29,11 +29,11 @@ require(__initCfg).then(
             // Transaction UUID (Пользовательский идентификатор заказа.) (128/String)
 /* R */     transactionUuid: '522a5e84-3193-41d1-9d7b-5921a1c20a8d', /* DATA REQUIRED */
             // id транзакции у PayNetEasy. Появится после <кто-то>Request: preauthReq, captureReq, wireTransferReq, cardRegReq
-/* ПОТОМ */ preauthPneId: '20796629',
+/* ПОТОМ */ preauthPneId: '',
 /* ПОТОМ */ preauthStatusPneId: [],
-/* ПОТОМ */ capturePneId: '20796629',
+/* ПОТОМ */ capturePneId: '',
 /* ПОТОМ */ captureStatusPneId: [],
-/* ПОТОМ */ wireTransferPneId: '20954407',
+/* ПОТОМ */ wireTransferPneId: '',
 /* ПОТОМ */ wireTransferStatusPneId: [],
 
 /* ПОТОМ */ returnPneId: '',
@@ -41,7 +41,7 @@ require(__initCfg).then(
 
 /* ПОТОМ */ cardRegPneId: '',
             // Сумма перевода (целевой платеж). Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
-/* R */     amount: 10, /* DATA REQUIRED */
+/* R */     amount: 1, /* DATA REQUIRED */
             // Сумма которую ПО зажимает себе. Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
 /* R */     comission: 0.5, /* DATA REQUIRED */
             // НДС (сумма) (10/Numeric)
@@ -50,6 +50,8 @@ require(__initCfg).then(
 /* D */     currency: 'RUB',
             // Назначение платежа (125/String)
 /* R */     'order_desc': 'order_desc!',
+            // Комментарий отмеры транзакции (50/String)
+            //makeRebillComment: '',
             // Комментарий отмеры транзакции (50/String)
 /* D */     returnComment: 'Transaction error',
 
@@ -91,9 +93,11 @@ require(__initCfg).then(
 
         // Карта плательщика
 
+/* ПОТОМ */ cardRefId: '1323587',
 /* ПОТОМ */ cardType: 'VISA',
 /* ПОТОМ */ cardBankName: 'ALFA BANK',
 /* ПОТОМ */ cardLastFourDigits: '9651',
+            cvv2: '',
 
         // Получатель
 
@@ -122,11 +126,17 @@ require(__initCfg).then(
         //var req = require(__pne + 'preauthStatusReq');
         //var req = require(__pne + 'captureReq');
         //var req = require(__pne + 'captureStatusReq');
-        //var req = require(__pne + 'wireTransferReq');
-        //var req = require(__pne + 'wireTransferStatusReq');
 
         //var req = require(__pne + 'returnReq');
         //var req = require(__pne + 'returnStatusReq');
+
+        //var req = require(__pne + 'regCardReq');
+
+        //var req = require(__pne + 'wireTransferReq');
+        //var req = require(__pne + 'wireTransferStatusReq');
+
+        //var req = require(__pne + 'makeRebillPreauthReq');
+        //var req = require(__pne + 'makeRebillPreauthStatusReq');
 
         req(reqData)
             .then(
