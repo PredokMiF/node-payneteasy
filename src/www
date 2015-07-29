@@ -27,10 +27,10 @@ require(__initCfg).then(
 
 /* R */     endpointid: 815,
             // Transaction UUID (Пользовательский идентификатор заказа.) (128/String)
-/* R */     transactionUuid: '522a5e84-3193-41d1-9d7b-5921a1c20a8d', /* DATA REQUIRED */
+/* R */     transactionUuid: '522a5e84-3193-41d1-9d7b-5921a1c20a90', /* DATA REQUIRED */
             // id транзакции у PayNetEasy. Появится после <кто-то>Request: preauthReq, captureReq, wireTransferReq, cardRegReq
 /* ПОТОМ */ preauthPneId: '',
-/* ПОТОМ */ preauthStatusPneId: [],
+/* ПОТОМ */ preauthStatusPneId: [''],
 /* ПОТОМ */ capturePneId: '',
 /* ПОТОМ */ captureStatusPneId: [],
 /* ПОТОМ */ wireTransferPneId: '',
@@ -43,7 +43,7 @@ require(__initCfg).then(
             // Сумма перевода (целевой платеж). Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
 /* R */     amount: 1, /* DATA REQUIRED */
             // Сумма которую ПО зажимает себе. Копейки от рублей отделяются точкой. Например 10.5 (10/Numeric)
-/* R */     comission: 0.5, /* DATA REQUIRED */
+/* R */     comission: 0.52, /* DATA REQUIRED */
             // НДС (сумма) (10/Numeric)
 /* D */     NDS: 0,
             // Трехзначный код валюты платежа, например RUB (3/String)
@@ -93,7 +93,7 @@ require(__initCfg).then(
 
         // Карта плательщика
 
-/* ПОТОМ */ cardRefId: '1323587',
+/* ПОТОМ */ cardRefId: '1326586',
 /* ПОТОМ */ cardType: 'VISA',
 /* ПОТОМ */ cardBankName: 'ALFA BANK',
 /* ПОТОМ */ cardLastFourDigits: '9651',
@@ -124,19 +124,20 @@ require(__initCfg).then(
 
         //var req = require(__pne + 'preauthReq');
         //var req = require(__pne + 'preauthStatusReq');
-        //var req = require(__pne + 'captureReq');
-        //var req = require(__pne + 'captureStatusReq');
+
+        var req = require(__pne + 'makeRebillPreauthReq');
+        var req = require(__pne + 'makeRebillPreauthStatusReq');
+
+        //var req = require(__pne + 'regCardReq');
 
         //var req = require(__pne + 'returnReq');
         //var req = require(__pne + 'returnStatusReq');
 
-        //var req = require(__pne + 'regCardReq');
+        //var req = require(__pne + 'captureReq');
+        //var req = require(__pne + 'captureStatusReq');
 
         //var req = require(__pne + 'wireTransferReq');
         //var req = require(__pne + 'wireTransferStatusReq');
-
-        //var req = require(__pne + 'makeRebillPreauthReq');
-        //var req = require(__pne + 'makeRebillPreauthStatusReq');
 
         req(reqData)
             .then(

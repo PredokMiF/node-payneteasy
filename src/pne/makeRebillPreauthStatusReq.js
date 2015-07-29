@@ -9,7 +9,7 @@ var pneReq = require('./req');
 /**
  * Если в ответе resolve({data: {status: 'approved', ...}}), то сохранить cardType, cardBankName, cardLastFourDigits в общих данных
  * @param data {Object}
- * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,preauthStatusPneId,status,processing,approved,data,card{cardType,bankName,lastFourDigits}}}
+ * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,preauthStatusPneId,status,processing,approved,html,data,card{cardType,bankName,lastFourDigits}}}
  */
 function makeRebillPreauthStatusReq(data) {
     // id терминала PNE
@@ -42,6 +42,7 @@ function makeRebillPreauthStatusReq(data) {
                             transactionUuid: data['merchant-order-id'],
                             preauthStatusPneId: data['paynet-order-id'],
                             status: data.status,
+                            html: data.html,
                             data: JSON.stringify(data)
                         }
                     };
