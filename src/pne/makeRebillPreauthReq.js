@@ -34,21 +34,21 @@ function makeRebillPreauthReq(data) {
         // Трехзначный код валюты платежа, например RUB (3/String)
         currency: data.currency,
         // Назначение платежа (125/String)
-        order_desc: data.order_desc,
+        order_desc: data.orderDesc,
         // A short сomment
         comment: data.makeRebillComment,
 
     // Плательщик
 
         // Card reference id obtained at Card Registration step
-        cardrefid: data.cardRefId,
+        cardrefid: data.payer_cardId,
         // IP адрес плательщика (20/String)
         ipaddress: data.payer_ipaddress,
 
     // Остальное
 
         // URL the transaction result will be sent to. Merchant may use this URL for custom processing of the transaction completion, e.g. to collect sales data in Merchant’s database. See more details at Merchant Callbacks (128/String)
-        server_callback_url: data.server_callback_url
+        server_callback_url: data.serverCallbackUrl
     };
 
     return when.promise(function(resolve, reject){

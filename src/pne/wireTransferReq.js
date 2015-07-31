@@ -26,14 +26,14 @@ function wireTransferReq(data) {
         // Трехзначный код валюты платежа, например RUB (3/String)
         currency: data.currency,
         // Назначение платежа (125/String)
-        'payment-details': data.order_desc,
+        'payment-details': data.orderDesc,
 
     // Плательщик
 
         // Получатель платежа (128/String)
-        'payer-fullname': data.payerFullname,
+        'payer-fullname': data.payer_fullname,
         // Тип, серия и номер документа, удостоверяющего личность. Укажите нужный тип документа (2 цифры) + запятая + символы от 4 до 64 (64/String)
-        'payer-identity-document': data.payerIdentityDocument,
+        'payer-identity-document': data.payer_identityDocument,
         // E-mail плательщика (128/String)
         'payer-email': data.payer_email,
         // Телефон плательщика (15/String)
@@ -42,18 +42,18 @@ function wireTransferReq(data) {
     // Получатель
 
         // Получатель платежа (255/String)
-        'recipient-name': data.recipientName,
+        'recipient-name': data.recipient_name,
         // ИНН получателя (255/String)
-        'recipient-inn': data.recipientInn,
+        'recipient-inn': data.recipient_inn,
         // Номер счета получателя (20/Numeric)
-        'recipient-account-number': data.recipientAccountNumber,
+        'recipient-account-number': data.recipient_accountNumber,
         // БИК банка получателя (9/Numeric)
-        'recipient-bank-bic': data.recipientBankBic,
+        'recipient-bank-bic': data.recipient_bankBic,
 
     // Остальное
 
         // URL the transaction result will be sent to. Merchant may use this URL for custom processing of the transaction completion, e.g. to collect sales data in Merchant’s database. See more details at Merchant Callbacks (128/String)
-        server_callback_url: data.server_callback_url
+        server_callback_url: data.serverCallbackUrl
     };
 
     return when.promise(function(resolve, reject){

@@ -8,7 +8,7 @@ var pneReq = require('./req');
 /**
  * Переводит заHOLDированные средства с карты плательщика
  * @param data {Object}
- * @returns {Deferred} reject(err), resolve(data) data {err:{msg,code,data}} || {data:{pneReqSerialNumber,cardRefId,data}}
+ * @returns {Deferred} reject(err), resolve(data) data {err:{msg,code,data}} || {data:{pneReqSerialNumber,cardId,data}}
  */
 function regCardReq(data) {
     // id терминала PNE
@@ -42,7 +42,7 @@ function regCardReq(data) {
                 resolve({
                     data: {
                         pneReqSerialNumber: data['serial-number'],
-                        cardRefId: data['card-ref-id'],
+                        cardId: data['card-ref-id'],
                         data: JSON.stringify(data)
                     }
                 });
