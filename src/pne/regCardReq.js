@@ -6,7 +6,7 @@ var CONFIG = require(__cfg);
 var pneReq = require('./req');
 
 /**
- * Переводит заHOLDированные средства с карты плательщика
+ * Привязывает карты по удачному запросу HOLDирования средств
  * @param data {Object}
  * @returns {Deferred} reject(err), resolve(data) data {err:{msg,code,data}} || {data:{pneReqSerialNumber,cardId,data}}
  */
@@ -37,17 +37,17 @@ function regCardReq(data) {
             if (err) {
                 reject(err && err.stack || err);
             } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code'], data: JSON.stringify(data)}});
+                resolve({err: {msg: data['error-message'], code: data['error-code'], data: data}});
             } else if (data.type === 'create-card-ref-response') {
                 resolve({
                     data: {
                         pneReqSerialNumber: data['serial-number'],
                         cardId: data['card-ref-id'],
-                        data: JSON.stringify(data)
+                        data: data
                     }
                 });
             } else {
-                reject({err: 'Error!', data: JSON.stringify(data)});
+                reject({err: 'Error!', data: data});
             }
         });
     });

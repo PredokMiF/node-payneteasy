@@ -1,36 +1,64 @@
 "use strict";
 
+var _ = require('lodash-node');
 var when = require('when');
 
 var CONFIG = require(__cfg);
 
 var ApiSecurity = require(__modulesCustom + 'api-security');
+var HandledError = require(__modulesCustom + 'handledError');
+var daoTransactionCreate = require(__dao + 'transaction/transactionCreate');
+var daoTransactionUpdate = require(__dao + 'transaction/transactionUpdate');
+var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepCreate');
+
+var preauthReq = require(__pne + 'preauthReq');
+
+var SEC = 1000;
+var MINUTE = 60 * SEC;
 
 module.exports = function (app) {
 
+    var queue = {};
+    var queueArray = [];
+
+    // Чистим явно старые хвосты
+    setInterval(function () {
+        while (queueArray.length && queue[queueArray[0]].created > Date.now() + 10 * MINUTE) {
+            delete queue[queueArray[0]];
+            queueArray.shift();
+        }
+    }, 10 * MINUTE);
+
+    function cleanQueue (uuid) {
+        var pos = queueArray.indexOf(uuid);
+        if (pos !== -1) {
+            queueArray.splice(pos, 1);
+        }
+        delete queue[uuid];
+    }
+
     /**
      * @api {POST} /api/v<APIVer>/pay pay
-     * @apiVersion 0.0.1
+     * @apiVersion 0.1.0
      * @apiDescription оплата по пластиковой карте (с вводом параметров карты и с привязаной картой)
      * @apiName Pay
      * @apiGroup Pay
      * @apiPermission user
      *
-     * @endpointid {Integer} endpointid ID терминала оплаты
-     * @endpointid {String} transactionUuid UUID транзакции оплаты
-     * @endpointid {Number} amount целевая сумма перевода
-     * @endpointid {Number} comission комиссия, добавляется к целевой сумме, образуя сумму платежа
-     * @endpointid {Number} [NDS] НДС (Def: 0)
-     * @endpointid {String} [currency] Валюта (Def: RUB)
-     * @endpointid {String} orderDesc Назначение платежа
-     * @endpointid {String} [makeRebillComment] Комментарий перевода по зарег. карте
-     * @endpointid {String} [returnComment] Комментарий отмеры транзакции (Def: TRANSACTION_ERROR)
+     * @apiParam {Integer} endpointid ID терминала оплаты
+     * @apiParam {String} transactionUuid UUID транзакции оплаты
+     * @apiParam {Number} amount целевая сумма перевода
+     * @apiParam {Number} comission комиссия, добавляется к целевой сумме, образуя сумму платежа
+     * @apiParam {Number} [NDS] НДС (Def: 0)
+     * @apiParam {String} [currency] Валюта (Def: RUB)
+     * @apiParam {String} orderDesc Назначение платежа
+     * @apiParam {String} [makeRebillComment] Комментарий перевода по зарег. карте
+     * @apiParam {String} [returnComment] Комментарий отмеры транзакции (Def: TRANSACTION_ERROR)
      *
      * @apiParam {String} userUuid UUID плательщика
      * @apiParam {String} [payer_firstName] Имя плательщика
      * @apiParam {String} [payer_lastName] Фамилия плательщика
      * @apiParam {String} payer_fullname Полное ФИО плательщика
-     * @apiParam {Date} [payer_birthday] Дата рождения плательщика (пока не используется)
      * @apiParam {String} payer_identityDocument Документ идентифицирующий плательщика. Формат "<ТИП_ДОКУМЕНТА>,<СЕРИЯ_НОМЕР_ДОКУМЕНТА>", где <ТИП_ДОКУМЕНТА> двузначное число от 01 до 11 (01-паспорт)
      * @apiParam {Number} [payer_ssn] Last four digits of the customer’s social security number
      * @apiParam {String} payer_email E-mail плательщика
@@ -41,7 +69,7 @@ module.exports = function (app) {
      * @apiParam {String} payer_city Город плательщика
      * @apiParam {String} payer_zipCode Почтовый индекс плательщика
      * @apiParam {String} payer_address1 Адрес плательщика
-     * @apiParam {String} ipaddress IP адрес плательщика
+     * @apiParam {String} payer_ipaddress IP адрес плательщика
      * @apiParam {String} [payer_cardId] ID привязаной карты плательщика
      * @apiParam {String} [payer_cardCvv2] CVV2 привязаной карты плательщика
      *
@@ -60,11 +88,11 @@ module.exports = function (app) {
      *
      * @apiUse RestErrorFormat_v0_2_0
      *
-     * @apiSampleRequest /api/v0.0.1/pay
+     * @apiSampleRequest /api/v0.1.0/pay
      */
 
     app.post('/api/v:APIVer/pay', ApiSecurity({
-        APIVer: '0.0.1',
+        APIVer: '0.1.0',
         role: 'all',
         reqUrlValidate: {},
         reqQueryValidate: {},
@@ -112,7 +140,7 @@ module.exports = function (app) {
             payer_zipCode: 's reqKey min 1',
             payer_address1: 's reqKey min 1',
             payer_ipaddress: 's reqKey min 1',
-            payer_cardId: 's min 1',
+            payer_cardId: 's null def null min 1',
             payer_cardCvv2: 's min 1',
 
             // Получатель
@@ -129,88 +157,154 @@ module.exports = function (app) {
             serverCallbackUrl: 's min 2'
         }
     }, function (req, res, next) {
-        return when.promise(function(resolve, reject){
-            //var db = CONFIG.dbGetSync();
+        return daoTransactionCreate.create(req.body)
+            .then(function () {
+                return when.promise(function(resolve, reject){
 
-            var payment = {
-                userUuid: req.body.userUuid,
+                    queue[req.body.transactionUuid] = {
+                        resolve: resolve,
+                        reject: reject,
+                        res: res,
+                        created: Date.now()
+                    };
+                    queueArray.push(req.body.transactionUuid);
+
+                    if (!req.body.payer_cardId) {
+                        // Оплата с вводом реквизитов карты
+                        preauth(req.body);
+                    } else {
+                        // Оплата по привязанной банк. карте
+                        makeRebillPreauth(req.body);
+                    }
+                });
+            });
+
+        //return when.promise(function(resolve, reject){
+            var t = {
+
+                // Накапливаемые поля в процессе перевода платежа
+
+                preauthPneId: null,
+                capturePneId: null,
+                wireTransferPneId: null,
+                returnPneId: null,
+                cardId: null,
+                cardType: null,
+                cardBankName: null,
+                cardLastFourDigits: null,
+
+                // Перевод
+
+                endpointid: req.body.endpointid,
                 transactionUuid: req.body.transactionUuid,
+                amount: req.body.amount,
+                comission: req.body.comission,
+                NDS: req.body.NDS,
+                currency: req.body.currency,
+                orderDesc: req.body.orderDesc,
+                makeRebillComment: req.body.makeRebillComment,
+                returnComment: req.body.returnComment,
+
+                // Плательщик
+
+                userUuid: req.body.userUuid,
+                payer_firstName: req.body.payer_firstName,
+                payer_lastName: req.body.payer_lastName,
+                payer_fullname: req.body.payer_fullname,
+                //payer_birthday: 'd', // нет валидатора
+                payer_identityDocument: req.body.payer_identityDocument,
+                payer_ssn: req.body.payer_ssn,
+                payer_email: req.body.payer_email,
+                payer_phone: req.body.payer_phone,
+                payer_cellPhone: req.body.payer_cellPhone,
+                payer_country: req.body.payer_country,
+                payer_state: req.body.payer_state,
+                payer_city: req.body.payer_city,
+                payer_zipCode: req.body.payer_zipCode,
+                payer_address1: 's reqKey min 1',
+                payer_ipaddress: req.body.payer_ipaddress,
+                payer_cardId: req.body.payer_cardId,
+                payer_cardCvv2: 's min 1',
+
+                // Получатель
+
+                recipient_name: req.body.recipient_name,
+                recipient_inn: req.body.recipient_inn,
+                recipient_accountNumber: req.body.recipient_accountNumber,
+                recipient_bankBic: req.body.recipient_bankBic,
+
+                // Остальное
+
                 redirectUrl: req.body.redirectUrl,
-                state: 'new',
-                initData: {
-                    
-                    // Накапливаемые поля в процессе перевода платежа
-                    
-                    preauthPneId: null,
-                    preauthStatusPneId: [],
-                    capturePneId: null,
-                    captureStatusPneId: [],
-                    wireTransferPneId: null,
-                    wireTransferStatusPneId: [],
-                    returnPneId: null,
-                    returnStatusPneId: [],
-                    cardId: null,
-                    cardType: null,
-                    cardBankName: null,
-                    cardLastFourDigits: null,
-
-                    // Перевод
-
-                    endpointid: req.body.endpointid,
-                    transactionUuid: req.body.transactionUuid,
-                    amount: req.body.amount,
-                    comission: req.body.comission,
-                    NDS: req.body.NDS,
-                    currency: req.body.currency,
-                    orderDesc: req.body.orderDesc,
-                    makeRebillComment: req.body.makeRebillComment,
-                    returnComment: req.body.returnComment,
-
-                    // Плательщик
-
-                    userUuid: req.body.userUuid,
-                    payer_firstName: req.body.payer_firstName,
-                    payer_lastName: req.body.payer_lastName,
-                    payer_fullname: req.body.payer_fullname,
-                    //payer_birthday: 'd', // нет валидатора
-                    payer_identityDocument: req.body.payer_identityDocument,
-                    payer_ssn: req.body.payer_ssn,
-                    payer_email: req.body.payer_email,
-                    payer_phone: req.body.payer_phone,
-                    payer_cellPhone: req.body.payer_cellPhone,
-                    payer_country: req.body.payer_country,
-                    payer_state: req.body.payer_state,
-                    payer_city: req.body.payer_city,
-                    payer_zipCode: req.body.payer_zipCode,
-                    payer_address1: 's reqKey min 1',
-                    payer_ipaddress: req.body.payer_ipaddress,
-                    payer_cardId: req.body.payer_cardId,
-                    payer_cardCvv2: 's min 1',
-
-                    // Получатель
-
-                    recipient_name: req.body.recipient_name,
-                    recipient_inn: req.body.recipient_inn,
-                    recipient_accountNumber: req.body.recipient_accountNumber,
-                    recipient_bankBic: req.body.recipient_bankBic,
-
-                    // Остальное
-
-                    redirectUrl: req.body.redirectUrl,
-                    siteUrl: req.body.siteUrl,
-                    serverCallbackUrl: req.body.serverCallbackUrl
-                },
-                payPath: {}
+                siteUrl: req.body.siteUrl,
+                serverCallbackUrl: req.body.serverCallbackUrl
             };
 
-            db.payments.push(payment);
 
-            CONFIG.dbSetSync(db);
+            //res.send({url: 'http://pay.url.ru'});
 
-            res.send({url: 'http://pay.url.ru'});
-
-            resolve();
-        });
+            //resolve();
+        //});
     }));
+
+    function preauth (data) {
+        var transactionUuid = data.transactionUuid;
+
+        preauthReq(data).then(
+            function(response){
+                if (!response.err) {
+                    // Ok!
+                    response = response.data;
+                    daoTransactionStepCreate.create('preauth', response.pneReqSerialNumber, transactionUuid, response.preauthPneId, data, null, response.data)
+                        .then(function(){
+                            data.preauthPneId = response.preauthPneId;
+                            return daoTransactionUpdate.update(data);
+                        })
+                        .then(
+                            function(){
+                                queue[transactionUuid].res.send({
+                                    transactionUuid: transactionUuid,
+                                    url: response.url
+                                });
+                                queue[transactionUuid].resolve();
+                            },
+                            function (err) {
+                                queue[transactionUuid].reject(err);
+                            }
+                        )
+                        .finally(function(){
+                            cleanQueue(transactionUuid);
+                        });
+                } else {
+                    // Err
+                    daoTransactionStepCreate.create('preauth',
+                        response.err.data['serial-number'], transactionUuid, null,data, response.err.msg, response.err.data)
+                        .then(
+                            function(){
+                                queue[transactionUuid].reject(new HandledError(200, response.err.msg));
+                            },
+                            function (err) {
+                                queue[transactionUuid].reject(err);
+                            }
+                        )
+                        .finally(function(){
+                            cleanQueue(transactionUuid);
+                        });
+                }
+            },
+            function(err){
+                if (_.isPlainObject(err)) {
+                    queue[transactionUuid].reject(new HandledError(200, err.err, err.data));
+                } else {
+                    queue[transactionUuid].reject(err);
+                }
+                cleanQueue(transactionUuid);
+            }
+        );
+    }
+
+    function makeRebillPreauth (data) {
+
+    }
 
 };

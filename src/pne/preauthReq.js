@@ -79,7 +79,7 @@ function preauthReq(data) {
             if (err) {
                 reject(err && err.stack || err);
             } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code'], data: JSON.stringify(data)}});
+                resolve({err: {msg: data['error-message'], code: data['error-code'], data: data}});
             } else if (data.type === 'async-form-response') {
                 resolve({
                     data: {
@@ -87,11 +87,11 @@ function preauthReq(data) {
                         transactionUuid: data['merchant-order-id'],
                         preauthPneId: data['paynet-order-id'],
                         url: data['redirect-url'],
-                        data: JSON.stringify(data)
+                        data: data
                     }
                 });
             } else {
-                reject({err: 'Error!', data: JSON.stringify(data)});
+                reject({err: 'Error!', data: data});
             }
         });
     });

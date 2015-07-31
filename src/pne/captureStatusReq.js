@@ -7,7 +7,7 @@ var CONFIG = require(__cfg);
 var pneReq = require('./req');
 
 /**
- *
+ * Проверяет статус перевода заHOLDированных средств с карты плательщика
  * @param data {Object}
  * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,captureStatusPneId,status,processing,approved,data}}
  */
@@ -34,7 +34,7 @@ function captureStatusReq(data) {
                 reject(err && err.stack || err);
             } else if (data.type === 'status-response') {
                 if (data.status === 'declined' || data.status === 'error' || data.status === 'filtered') {
-                    outData = {err: {msg: data['error-message'],  status:  data.status, code: data['error-code'], data: JSON.stringify(data)}};
+                    outData = {err: {msg: data['error-message'],  status:  data.status, code: data['error-code'], data: data}};
                 } else {
                     outData = {
                         data: {
@@ -42,7 +42,7 @@ function captureStatusReq(data) {
                             transactionUuid: data['merchant-order-id'],
                             captureStatusPneId: data['paynet-order-id'],
                             status: data.status,
-                            data: JSON.stringify(data)
+                            data: data
                         }
                     };
 
@@ -55,7 +55,7 @@ function captureStatusReq(data) {
 
                 resolve(outData);
             } else {
-                reject({err: 'Error!', data: JSON.stringify(data)});
+                reject({err: 'Error!', data: data});
             }
         });
     });

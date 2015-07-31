@@ -7,6 +7,7 @@ var CONFIG = require(__cfg);
 var pneReq = require('./req');
 
 /**
+ * Проверяет статус HOLDирования средства на карте плательщика
  * Если в ответе resolve({data: {status: 'approved', ...}}), то сохранить cardType, cardBankName, cardLastFourDigits в общих данных
  * @param data {Object}
  * @returns {Deferred} reject(err), resolve(data) data {err:{msg,status,code,data}} || {data:{pneReqSerialNumber,transactionUuid,preauthStatusPneId,status,processing,approved,data,card{cardType,bankName,lastFourDigits}}}
@@ -34,7 +35,7 @@ function preauthStatusReq(data) {
                 reject(err && err.stack || err);
             } else if (data.type === 'status-response') {
                 if (data.status === 'declined' || data.status === 'error' || data.status === 'filtered') {
-                    outData = {err: {msg: data['error-message'],  status:  data.status, code: data['error-code'], data: JSON.stringify(data)}};
+                    outData = {err: {msg: data['error-message'],  status:  data.status, code: data['error-code'], data: data}};
                 } else {
                     outData = {
                         data: {
@@ -42,7 +43,7 @@ function preauthStatusReq(data) {
                             transactionUuid: data['merchant-order-id'],
                             preauthStatusPneId: data['paynet-order-id'],
                             status: data.status,
-                            data: JSON.stringify(data)
+                            data: data
                         }
                     };
 
@@ -60,7 +61,7 @@ function preauthStatusReq(data) {
 
                 resolve(outData);
             } else {
-                reject({err: 'Error!', data: JSON.stringify(data)});
+                reject({err: 'Error!', data: data});
             }
         });
     });

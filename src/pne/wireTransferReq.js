@@ -66,18 +66,18 @@ function wireTransferReq(data) {
             if (err) {
                 reject(err && err.stack || err);
             } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code'], data: JSON.stringify(data)}});
+                resolve({err: {msg: data['error-message'], code: data['error-code'], data: data}});
             } else if (data.type === 'async-response') {
                 resolve({
                     data: {
                         pneReqSerialNumber: data['serial-number'],
                         transactionUuid: data['merchant-order-id'],
                         wireTransferPneId: data['paynet-order-id'],
-                        data: JSON.stringify(data)
+                        data: data
                     }
                 });
             } else {
-                reject({err: 'Error!', data: JSON.stringify(data)});
+                reject({err: 'Error!', data: data});
             }
         });
     });
