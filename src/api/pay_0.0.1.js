@@ -45,8 +45,8 @@ module.exports = function (app) {
         reqUrlValidate: {},
         reqQueryValidate: {},
         reqBodyValidate: {
-            registerCard: 'b reqKey convert all',
-            cardUuid: 's min 1',
+            registerCard: 'b def false reqKey convert all',
+            cardUuid: 's null def null min 1',
             userUuid: 's reqKey min 1',
             transactionUuid: 's reqKey min 1',
             country: 's reqKey min 2',
