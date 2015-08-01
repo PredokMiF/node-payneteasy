@@ -23,5 +23,5 @@
 
 module.exports = function (app) {
 
-    require('./pay_0.0.1')(app);
+    require('./pay_0.1.0')(app);
 };

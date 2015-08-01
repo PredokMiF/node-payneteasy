@@ -152,6 +152,7 @@ module.exports = function (app) {
 
             // Остальное
 
+            registerCard: 'b def false convert all',
             redirectUrl: 's reqKey min 2',
             siteUrl: 's min 2',
             serverCallbackUrl: 's min 2'
