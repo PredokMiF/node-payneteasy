@@ -50,7 +50,7 @@ function preauthStatusReq(data) {
                     if (data.status === 'approved') {
                         outData.data.approved = true;
                         outData.data.card = {
-                            'cardType': data['card-type'],
+                            cardType: data['card-type'],
                             bankName: data['bank-name'],
                             lastFourDigits: data['last-four-digits']
                         }

@@ -9,9 +9,8 @@ var callMe = require(__modulesCustom + 'callMe');
 
 var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepCreate');
 
-// События на которые вешаются обработчики
-var clientServerReqEvents = ['transaction resolve', 'transaction reject'];
-clientServerReqEvents = _.reduce(clientServerReqEvents, function(accum, reqEvent){
+// События на которые вешаются обработчики. На вызоде объект вида {<evName>: true} для удобного поиска подписанных солбэков
+var clientServerReqEvents = _.reduce(['transaction resolve', 'transaction reject', 'register card'], function(accum, reqEvent){
     callMe.on(reqEvent, doClientServerReqCb);
     accum[reqEvent] = true;
     return accum;
@@ -87,7 +86,25 @@ function rejectTransaction (data) {
     doClientServerReq(reqData);
 }
 
+function cardRegistred (data) {
+    var reqData = {
+        event: 'register card',
+        userUuid: data.userUuid,
+        data: {
+            userUuid: data.userUuid,
+            transactionUuid: data.transactionUuid,
+            cardId: data.cardId,
+            cardType: data.cardType,
+            cardBankName: data.cardBankName,
+            cardLastFourDigits: data.cardLastFourDigits
+        }
+    };
+
+    doClientServerReq(reqData);
+}
+
 module.exports = {
     resolveTransaction: resolveTransaction,
-    rejectTransaction: rejectTransaction
+    rejectTransaction: rejectTransaction,
+    cardRegistred: cardRegistred
 };

@@ -14,6 +14,7 @@ var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepC
 
 var preauthReq = require(__pne + 'preauthReq');
 var preauthStatusReq = require(__pne + 'preauthStatusReq');
+var registerCardHelper = require('./registerCardHelper');
 
 var clientServerHelpers = require('./clientServerHelpers');
 
@@ -301,32 +302,28 @@ module.exports = function (app) {
         );
     }
 
-    function makeRebillPreauth (data) {
-        var transactionUuid = data.transactionUuid;
-        queue[transactionUuid].reject('Низяяя!!!' + JSON.stringify(data));
-        cleanQueue(transactionUuid);
-    }
-
     callMe.on('preauthStatus', function (data) {
-        console.log('preauthStatus');
-        console.log(data);
-
         return preauthStatusReq(data)
             .then(
                 function (response) {
-                    console.log('response');
-                    console.log(response);
                     if (response.err) {
                         daoTransactionStepCreate.create('preauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                         clientServerHelpers.rejectTransaction(data);
                         return when.resolve();
                     } else if (response.data.processing) {
-                        daoTransactionStepCreate.create('preauthStatus', response.data['serial-number'], response.data['merchant-order-id'], response.data['paynet-order-id'], data, null, response.data);
+                        daoTransactionStepCreate.create('preauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
                         return when.reject();
                     } else {
-                        daoTransactionStepCreate.create('preauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, null, response.err.data);
-                        clientServerHelpers.resolveTransaction(data);
-                        return when.resolve();
+                        daoTransactionStepCreate.create('preauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
+
+                        data.cardType = response.data.card.cardType;
+                        data.cardBankName = response.data.card.bankName;
+                        data.cardLastFourDigits = response.data.card.lastFourDigits;
+
+                        return daoTransactionUpdate.update(data)
+                            .then(function(){
+                                registerCardHelper(data);
+                            });
                     }
                 },
                 function (err) {
@@ -334,7 +331,19 @@ module.exports = function (app) {
                     console.log(err);
                 }
             );
-        //return when.reject();
     });
+
+    function afterPreauthResolve (data) {
+        if (data.registerCard) {
+
+        }
+        wireHelper(data);
+    }
+
+    function makeRebillPreauth (data) {
+        var transactionUuid = data.transactionUuid;
+        queue[transactionUuid].reject('Низяяя!!!' + JSON.stringify(data));
+        cleanQueue(transactionUuid);
+    }
 
 };
