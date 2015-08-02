@@ -4,6 +4,7 @@ var _ = require('lodash-node');
 var when = require('when');
 
 var CONFIG = require(__cfg);
+var callMe = require(__modulesCustom + 'callMe');
 
 var ApiSecurity = require(__modulesCustom + 'api-security');
 var HandledError = require(__modulesCustom + 'handledError');
@@ -12,6 +13,9 @@ var daoTransactionUpdate = require(__dao + 'transaction/transactionUpdate');
 var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepCreate');
 
 var preauthReq = require(__pne + 'preauthReq');
+var preauthStatusReq = require(__pne + 'preauthStatusReq');
+
+var clientServerHelpers = require('./clientServerHelpers');
 
 var SEC = 1000;
 var MINUTE = 60 * SEC;
@@ -180,8 +184,7 @@ module.exports = function (app) {
                 });
             });
 
-        //return when.promise(function(resolve, reject){
-            var t = {
+            /*var t = {
 
                 // Накапливаемые поля в процессе перевода платежа
 
@@ -239,13 +242,7 @@ module.exports = function (app) {
                 redirectUrl: req.body.redirectUrl,
                 siteUrl: req.body.siteUrl,
                 serverCallbackUrl: req.body.serverCallbackUrl
-            };
-
-
-            //res.send({url: 'http://pay.url.ru'});
-
-            //resolve();
-        //});
+            };*/
     }));
 
     function preauth (data) {
@@ -268,6 +265,7 @@ module.exports = function (app) {
                                     url: response.url
                                 });
                                 queue[transactionUuid].resolve();
+                                callMe.poll('preauthStatus', data.userUuid, [10,10,10,10,10,10,10,60,60,60,60,60,60,60,600,600,600,600,600,600,600,3600], data);
                             },
                             function (err) {
                                 queue[transactionUuid].reject(err);
@@ -278,8 +276,7 @@ module.exports = function (app) {
                         });
                 } else {
                     // Err
-                    daoTransactionStepCreate.create('preauth',
-                        response.err.data['serial-number'], transactionUuid, null,data, response.err.msg, response.err.data)
+                    daoTransactionStepCreate.create('preauth', response.err.data['serial-number'], transactionUuid, null,data, response.err.msg, response.err.data)
                         .then(
                             function(){
                                 queue[transactionUuid].reject(new HandledError(200, response.err.msg));
@@ -305,7 +302,39 @@ module.exports = function (app) {
     }
 
     function makeRebillPreauth (data) {
-
+        var transactionUuid = data.transactionUuid;
+        queue[transactionUuid].reject('Низяяя!!!' + JSON.stringify(data));
+        cleanQueue(transactionUuid);
     }
+
+    callMe.on('preauthStatus', function (data) {
+        console.log('preauthStatus');
+        console.log(data);
+
+        return preauthStatusReq(data)
+            .then(
+                function (response) {
+                    console.log('response');
+                    console.log(response);
+                    if (response.err) {
+                        daoTransactionStepCreate.create('preauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                        clientServerHelpers.rejectTransaction(data);
+                        return when.resolve();
+                    } else if (response.data.processing) {
+                        daoTransactionStepCreate.create('preauthStatus', response.data['serial-number'], response.data['merchant-order-id'], response.data['paynet-order-id'], data, null, response.data);
+                        return when.reject();
+                    } else {
+                        daoTransactionStepCreate.create('preauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, null, response.err.data);
+                        clientServerHelpers.resolveTransaction(data);
+                        return when.resolve();
+                    }
+                },
+                function (err) {
+                    console.log('err');
+                    console.log(err);
+                }
+            );
+        //return when.reject();
+    });
 
 };
