@@ -15,7 +15,10 @@ var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepC
 var preauthReq = require(__pne + 'preauthReq');
 var preauthStatusReq = require(__pne + 'preauthStatusReq');
 var registerCardHelper = require('./registerCardHelper');
+var makeRebillPreauthReq = require(__pne + 'makeRebillPreauthReq');
+var makeRebillPreauthStatusReq = require(__pne + 'makeRebillPreauthStatusReq');
 
+var wireHelper = require('./wireHelper');
 var clientServerHelpers = require('./clientServerHelpers');
 
 var SEC = 1000;
@@ -333,17 +336,106 @@ module.exports = function (app) {
             );
     });
 
-    function afterPreauthResolve (data) {
-        if (data.registerCard) {
-
-        }
-        wireHelper(data);
-    }
-
+    // С makeRebillPreauth проще, т.к. не нужно использовать callMe, потому что нужные нам данные приходят в makeRebillPreauthStatus, а дальше wireTransfer и по накатаной
     function makeRebillPreauth (data) {
         var transactionUuid = data.transactionUuid;
-        queue[transactionUuid].reject('Низяяя!!!' + JSON.stringify(data));
-        cleanQueue(transactionUuid);
+
+        //makeRebillPreauthReq
+        //makeRebillPreauthStatusReq
+
+        // Запрос на холдирование средств на карте по привязаной карте
+        makeRebillPreauthReq(data).then(
+                function(response){
+                    if (!response.err) {
+                        // Ok!
+                        response = response.data;
+                        return daoTransactionStepCreate.create('makeRebillPreauth', response.pneReqSerialNumber, transactionUuid, response.preauthPneId, data, null, response.data)
+                            .then(function(){
+                                data.preauthPneId = response.preauthPneId;
+                                return daoTransactionUpdate.update(data);
+                            });
+                    } else {
+                        // Err
+                        return daoTransactionStepCreate.create('makeRebillPreauth', response.err.data['serial-number'], transactionUuid, null,data, response.err.msg, response.err.data)
+                            .then(function(){
+                                return when.reject(response.err.msg);
+                            });
+                    }
+                }
+            )
+            // Откат если произошла ошибка холдирования средств на карте по привязаной карте
+            .then(
+                null,
+                function(err){
+                    if (_.isPlainObject(err)) {
+                        queue[transactionUuid].reject(new HandledError(200, err.err, err.data));
+                    } else {
+                        queue[transactionUuid].reject(err);
+                    }
+                    cleanQueue(transactionUuid);
+                    return when.reject();
+                }
+            )
+            // Получаем HTML
+            .then(function(){
+                (function doMakeRebillPreauthStatusReq () {
+                    makeRebillPreauthStatusReq(data)
+                        .then(
+                            function (response) {
+                                if (response.err) {
+                                    daoTransactionStepCreate.create('makeRebillPreauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                                    return when.reject(response.err.msg);
+                                } else {
+                                    daoTransactionStepCreate.create('makeRebillPreauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
+                                    if (response.data.html) {
+                                        queue[transactionUuid].res.send({
+                                            transactionUuid: transactionUuid,
+                                            html: response.data.html.replace(/\r\n/ig, '')
+                                        });
+
+                                        queue[transactionUuid].resolve();
+                                        cleanQueue(transactionUuid);
+
+                                        callMe.poll('makeRebillPreauthStatus', data.userUuid, [10,10,10,10,10,10,10,60,60,60,60,60,60,60,600,600,600,600,600,600,600,3600], data);
+                                    } else {
+                                        setTimeout(doMakeRebillPreauthStatusReq, SEC);
+                                    }
+                                }
+                            }
+                        )
+                        .catch(function (err) {
+                            queue[transactionUuid].reject(err);
+                            cleanQueue(transactionUuid);
+                        })
+                }());
+            });
     }
+
+    callMe.on('makeRebillPreauthStatus', function (data) {
+        return makeRebillPreauthStatusReq(data)
+            .then(
+                function (response) {
+                    if (response.err) {
+                        daoTransactionStepCreate.create('makeRebillPreauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                        clientServerHelpers.rejectTransaction(data);
+                        return when.resolve();
+                    } else if (response.data.processing) {
+                        daoTransactionStepCreate.create('makeRebillPreauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
+                        return when.reject();
+                    } else {
+                        daoTransactionStepCreate.create('makeRebillPreauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
+
+                        return daoTransactionUpdate.update(data)
+                            .then(function(){
+                                wireHelper(data);
+                            });
+                    }
+                },
+                function (err) {
+                    console.log('err');
+                    console.log(err);
+                }
+            );
+    });
 
 };

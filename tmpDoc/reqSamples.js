@@ -89,7 +89,7 @@ require(__initCfg).then(
 
         // Карта плательщика
 
-/* ПОТОМ */ cardId: '1326586',
+/* ПОТОМ */ payer_cardId: '1326586',
 /* ПОТОМ */ cardType: 'VISA',
 /* ПОТОМ */ cardBankName: 'ALFA BANK',
 /* ПОТОМ */ cardLastFourDigits: '9651',
@@ -119,7 +119,7 @@ require(__initCfg).then(
         var req;
 
         // Return
-        if (true) {
+        /*if (true) {
             reqData.transactionUuid = 'c9607780-eb4f-4e1a-b5dd-44ac663c8c8e';
             reqData.preauthPneId = '21441763';
             reqData.amount = 1.07;
@@ -127,7 +127,10 @@ require(__initCfg).then(
             reqData.currency = 'RUB';
             reqData.comment = 'Return comment';
             req = require(__pne + 'returnReq');
-        }
+        }*/
+
+        //reqData.transactionUuid = '522a5e84-3193-41d1-9d7b-5921a1c20a90';
+        //reqData.preauthPneId = '21442587';
 
 
         //var req = require(__pne + 'preauthReq');
