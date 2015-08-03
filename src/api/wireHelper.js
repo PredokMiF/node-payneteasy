@@ -26,7 +26,7 @@ callMe.on('doWireTransfer', function (data) {
                     daoTransactionStepCreate.create('wireTransfer', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                     returnHelper(data);
                 } else {
-                    data.wireTransferPneId = response.wireTransferPneId;
+                    data.wireTransferPneId = response.data.wireTransferPneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){
                             daoTransactionStepCreate.create('wireTransfer', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data)
@@ -49,11 +49,11 @@ callMe.on('doWireTransferStatus', function (data) {
         .then(
             function (response) {
                 if (response.err) {
-                    daoTransactionStepCreate.create('wireTransferStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    daoTransactionStepCreate.create('wireTransferStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], data.wireTransferPneId, data, response.err.msg, response.err.data);
                     returnHelper(data);
                     return when.resolve();
                 } else if (response) {
-                    daoTransactionStepCreate.create('wireTransferStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
+                    daoTransactionStepCreate.create('wireTransferStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], data.wireTransferPneId, data, null, response.data.data);
                     if (response.data.approved) {
                         captureHelper(data);
                         return when.resolve();
