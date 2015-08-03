@@ -8,62 +8,66 @@ var callMe = require(__modulesCustom + 'callMe');
 var daoTransactionUpdate = require(__dao + 'transaction/transactionUpdate');
 var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepCreate');
 
-var clientServerHelpers = require('./clientServerHelpers');
-
+var captureHelper = require('./captureHelper');
 var returnHelper = require('./returnHelper');
 
 var wireTransferReq = require(__pne + 'wireTransferReq');
 var wireTransferStatusReq = require(__pne + 'wireTransferStatusReq');
 
 function doReq (data) {
-    clientServerHelpers.resolveTransaction(data);
-    returnHelper(data);
-    //callMe.poll('doReturn', data.userUuid, [0,10,60,600,3600], data);
+    callMe.poll('doWireTransfer', data.userUuid, [0,10,60,600,3600], data);
 }
 
-/*callMe.on('doReturn', function (data) {
-    return returnReq(data)
+callMe.on('doWireTransfer', function (data) {
+    return wireTransferReq(data)
         .then(
             function (response) {
                 if (response.err) {
-                    daoTransactionStepCreate.create('return', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    daoTransactionStepCreate.create('wireTransfer', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    returnHelper(data);
                 } else {
-                    data.returnPneId = response.returnPneId;
+                    data.wireTransferPneId = response.wireTransferPneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){
-                            daoTransactionStepCreate.create('return', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data)
+                            daoTransactionStepCreate.create('wireTransfer', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data)
                         })
                         .then(function(){
-                            callMe.poll('doReturnStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
+                            callMe.poll('doWireTransferStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
                         });
                 }
             },
             function (err) {
-                console.log('doReturn err');
+                console.log('doWireTransfer err');
                 console.log(err);
                 return when.reject(err);
             }
         );
 });
 
-callMe.on('doReturnStatus', function (data) {
-    return returnStatusReq(data)
+callMe.on('doWireTransferStatus', function (data) {
+    return wireTransferStatusReq(data)
         .then(
             function (response) {
                 if (response.err) {
-                    daoTransactionStepCreate.create('returnStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    daoTransactionStepCreate.create('wireTransferStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    returnHelper(data);
                     return when.resolve();
                 } else if (response) {
-                    daoTransactionStepCreate.create('returnStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
-                    return response.data.approved ? when.resolve() : when.reject()
+                    daoTransactionStepCreate.create('wireTransferStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
+                    if (response.data.approved) {
+                        captureHelper(data);
+                        return when.resolve();
+                    } else {
+                        return when.reject();
+                    }
                 }
             },
             function (err) {
-                console.log('doReturnStatus err');
+                console.log('doWireTransferStatus err');
                 console.log(err);
                 return when.reject(err);
             }
         );
-});*/
+});
 
 module.exports = doReq;
