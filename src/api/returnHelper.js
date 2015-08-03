@@ -11,6 +11,8 @@ var daoTransactionStepCreate = require(__dao + 'transactionStep/transactionStepC
 var returnReq = require(__pne + 'returnReq');
 var returnStatusReq = require(__pne + 'returnStatusReq');
 
+var clientServerHelpers = require('./clientServerHelpers');
+
 function doReq (data) {
     callMe.poll('doReturn', data.userUuid, [0,10,60,600,3600], data);
 }
@@ -22,6 +24,7 @@ callMe.on('doReturn', function (data) {
                 if (response.err) {
                     daoTransactionStepCreate.create('return', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                 } else {
+                    clientServerHelpers.rejectTransaction(data);
                     data.returnPneId = response.data.returnPneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){
