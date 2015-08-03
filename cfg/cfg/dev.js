@@ -29,7 +29,7 @@ var CONFIG = {
     CLIENT_SERVER: {
         DOMAIN: '127.0.0.1',
         PORT: 8088,
-        PATH: '/api/v0.2.0/payment/status-cb'
+        PATH: '/api/v0.3.0/payment/status-cb'
     }
 
 };
