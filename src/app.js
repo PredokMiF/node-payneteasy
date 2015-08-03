@@ -15,6 +15,11 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/apidoc', express.static(path.join(__dirname, '../', 'apidoc')));
 app.use(logger('dev'));
 
+app.get('/*', function(req, res, next){
+    res.setHeader('Last-Modified', (new Date()).toUTCString());
+    next();
+});
+
 require('./api/all')(app);
 
 // catch 404 and forward to error handler
