@@ -47,6 +47,8 @@ function makeRebillPreauthReq(data) {
 
     // Остальное
 
+        // URL the cardholder will be redirected to upon completion of the transaction. Please note that the cardholder will be redirected in any case, no matter whether the transaction is approved or declined. (128/String)
+        redirect_url: data.redirectUrl,
         // URL the transaction result will be sent to. Merchant may use this URL for custom processing of the transaction completion, e.g. to collect sales data in Merchant’s database. See more details at Merchant Callbacks (128/String)
         server_callback_url: data.serverCallbackUrl
     };
