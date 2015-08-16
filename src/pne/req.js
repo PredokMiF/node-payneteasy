@@ -3,6 +3,7 @@
 var _ = require('lodash-node');
 var https = require('https');
 var querystring = require('querystring');
+var logger = require(__modulesCustom + 'logger')('pneReq');
 
 var sha1 = require(__modulesCustom + 'sha1');
 
@@ -36,6 +37,7 @@ function pneReq (cfg, cb) {
         // Колбэк запроса
         !_.isFunction(cb) || cb.length !== 2
     ) {
+        logger.error('PNE:pneReq invalid parameters', cfg);
         throw new Error('PNE:pneReq invalid parameters');
     }
 
@@ -45,7 +47,7 @@ function pneReq (cfg, cb) {
     data.control = sha1.SHA1(controlFields.join('')).toString();
     data = querystring.stringify(data);
 
-    var postReqHandler = https.request({
+    var reqParams = {
         hostname: endpointCfg.hostname,
         method: "POST",
         path: path,
@@ -53,27 +55,37 @@ function pneReq (cfg, cb) {
             'Content-Type': 'application/x-www-form-urlencoded',
             'Content-Length': data.length
         }
-    }, function (res) {
-        var out = '';
-        res.on('data', function (chunk) {
-            out = out + chunk;
-        });
-        res.on('end', function () {
-            if (res.statusCode === 200) {
-                out = querystring.parse(out);
+    };
 
-                Object.keys(out).forEach(function (key) {
-                    out[key] = out[key].replace(/\n$/, '');
-                });
+    logger.debug('PNE request started', reqParams);
 
-                cb(null, out);
-            } else {
-                cb(out, undefined);
-            }
-        });
-    });
+    var postReqHandler = https.request(
+        reqParams,
+        function (res) {
+            var out = '';
+            res.on('data', function (chunk) {
+                out = out + chunk;
+            });
+            res.on('end', function () {
+                if (res.statusCode === 200) {
+                    out = querystring.parse(out);
+
+                    Object.keys(out).forEach(function (key) {
+                        out[key] = out[key].replace(/\n$/, '');
+                    });
+
+                    logger.debug('PNE request status 200', {reqParams: reqParams, out: out});
+                    cb(null, out);
+                } else {
+                    logger.error('PNE request status ' + res.statusCode, {reqParams: reqParams, out: out});
+                    cb(out, undefined);
+                }
+            });
+        }
+    );
 
     postReqHandler.on('error', function (err) {
+        logger.error('PNE reques error',  {reqParams: reqParams, err: err && err.stack || err});
         cb(err, undefined);
     });
     postReqHandler.write(data);

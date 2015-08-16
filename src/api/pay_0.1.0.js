@@ -4,6 +4,7 @@ var _ = require('lodash-node');
 var when = require('when');
 
 var CONFIG = require(__cfg);
+var logger = require(__modulesCustom + 'logger')('pay');
 var callMe = require(__modulesCustom + 'callMe');
 
 var ApiSecurity = require(__modulesCustom + 'api-security');
@@ -26,12 +27,16 @@ var MINUTE = 60 * SEC;
 
 module.exports = function (app) {
 
+    // Чтоб вернуть успешный ответ (транзакция инициализировалась. Вернуть URL перехода) нужно выполнить несколько запросов, сохраняя Deferred функции
+    // Тут лежат объекты вида {resolve, reject, res, created}
     var queue = {};
+    // uuid'ы инициализирующихся транзакций
     var queueArray = [];
 
-    // Чистим явно старые хвосты
+    // Чистим явно старые транзакции, если им больше 10 минут
     setInterval(function () {
         while (queueArray.length && queue[queueArray[0]].created > Date.now() + 10 * MINUTE) {
+            queue[queueArray[0]].reject('10 mitute timeout/ request rejected');
             delete queue[queueArray[0]];
             queueArray.shift();
         }
@@ -166,6 +171,7 @@ module.exports = function (app) {
             serverCallbackUrl: 's min 2'
         }
     }, function (req, res, next) {
+        logger.info('Lets try start transaction', req.body);
         return daoTransactionCreate.create(req.body)
             .then(function () {
                 return when.promise(function(resolve, reject){
@@ -186,6 +192,8 @@ module.exports = function (app) {
                         makeRebillPreauth(req.body);
                     }
                 });
+            }, function (err) {
+                logger.error('Start transaction filed', err);
             });
 
             /*var t = {
@@ -330,8 +338,7 @@ module.exports = function (app) {
                     }
                 },
                 function (err) {
-                    console.log('err');
-                    console.log(err);
+                    logger.error('preauthStatus err', err);
                 }
             );
     });
@@ -432,8 +439,7 @@ module.exports = function (app) {
                     }
                 },
                 function (err) {
-                    console.log('err');
-                    console.log(err);
+                    logger.error('makeRebillPreauthStatus', err);
                 }
             );
     });

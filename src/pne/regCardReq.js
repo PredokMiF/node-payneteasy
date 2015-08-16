@@ -1,6 +1,7 @@
 "use strict";
 
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('regCardReq');
 
 var CONFIG = require(__cfg);
 var pneReq = require('./req');
@@ -33,21 +34,25 @@ function regCardReq(data) {
             path: '/paynet/api/v2/create-card-ref/<endpointid>',
             data: data,
             controlFields: [['login'], ['client_orderid'], ['orderid'], ['control']]
-        }, function (err, data) {
+        }, function (err, resData) {
             if (err) {
+                logger.error('RegCard request error', {data: data, err: (err && err.stack || err)});
                 reject(err && err.stack || err);
-            } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code'], data: data}});
-            } else if (data.type === 'create-card-ref-response') {
+            } else if (resData.type === 'validation-error' || resData.type === 'error') {
+                logger.error('RegCard rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData});
+                resolve({err: {msg: resData['error-message'], code: resData['error-code'], data: resData}});
+            } else if (resData.type === 'create-card-ref-response') {
+                logger.info('RegCard resolved', {data: data, resData: resData});
                 resolve({
                     data: {
-                        pneReqSerialNumber: data['serial-number'],
-                        cardId: data['card-ref-id'],
-                        data: data
+                        pneReqSerialNumber: resData['serial-number'],
+                        cardId: resData['card-ref-id'],
+                        data: resData
                     }
                 });
             } else {
-                reject({err: 'Error!', data: data});
+                logger.error('RegCard rejected with unknown error', {data: data, resData: resData});
+                reject({err: 'Error!', data: resData});
             }
         });
     });

@@ -2,6 +2,7 @@
 
 var _ = require('lodash-node');
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('captureHelper');
 
 var callMe = require(__modulesCustom + 'callMe');
 
@@ -36,11 +37,6 @@ callMe.on('doCapture', function (data) {
                             callMe.poll('doCaptureStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
                         });
                 }
-            },
-            function (err) {
-                console.log('doCapture err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });
@@ -62,11 +58,6 @@ callMe.on('doCaptureStatus', function (data) {
                         return when.reject();
                     }
                 }
-            },
-            function (err) {
-                console.log('doCaptureStatus err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });

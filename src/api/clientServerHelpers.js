@@ -3,6 +3,7 @@
 var _ = require('lodash-node');
 var when = require('when');
 var request = require('request');
+var logger = require(__modulesCustom + 'logger')('clientServerHelpers');
 
 var CONFIG = require(__cfg);
 var callMe = require(__modulesCustom + 'callMe');
@@ -26,7 +27,7 @@ var clientServerReqEvents = _.reduce(['transaction resolve', 'transaction reject
  */
 function doClientServerReq (reqData) {
     if (!_.isPlainObject(reqData) || !_.isString(reqData.event) || reqData.event.length === 0 || !_.isPlainObject(reqData.data)) {
-        console.error('doClientServerReq is invalid parameters');
+        logger.error('doClientServerReq is invalid parameters', reqData);
         return;
     }
 
@@ -34,25 +35,30 @@ function doClientServerReq (reqData) {
     if (clientServerReqEvents[reqData.event]) {
         callMe.poll(reqData.event, reqData.userUuid, reqData.poolTime || [1,2,5,20,60, 300, 600], reqData);
     } else {
-        console.error('No callback for "'+reqData.event+'"!')
+        logger.error('No callback for "'+reqData.event+'"! Only: ' + Object.keys(clientServerReqEvents).join(', '))
     }
 }
 function doClientServerReqCb (reqData) {
+    var method = 'POST';
+    var url = 'http://' + CONFIG.CLIENT_SERVER.DOMAIN + ':' + CONFIG.CLIENT_SERVER.PORT + CONFIG.CLIENT_SERVER.PATH;
+    var form = reqData.data;
+
     return when.promise(function(resolve, reject){
         request({
-            method: 'POST',
-            url: 'http://' + CONFIG.CLIENT_SERVER.DOMAIN + ':' + CONFIG.CLIENT_SERVER.PORT + CONFIG.CLIENT_SERVER.PATH,
+            method: method,
+            url: url,
             headers: {
                 'Content-Type': 'application/json'
             },
             json: true,
-            form: reqData.data
+            form: form
         }, function (err, res, body) {
             if (err || res.statusCode !== 200 || !body || body.err) {
-                console.error(err || body && body.err || (res.statusCode+':'+res.statusMessage), JSON.stringify(res), body);
+                logger.error('Request to server error', {method: method, url: url, form: form, res: res, resBody: body, err: (err || body && body.err || (res.statusCode+':'+res.statusMessage))});
                 reject(err || body && body.err || (res.statusCode+':'+res.statusMessage));
                 return;
             }
+            logger.debug('Request to server success', {method: method, url: url, form: form, res: res, resBody: body});
             resolve();
         });
     });

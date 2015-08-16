@@ -1,6 +1,7 @@
 "use strict";
 
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('preauthStatusReq');
 
 var CONFIG = require(__cfg);
 
@@ -30,38 +31,43 @@ function preauthStatusReq(data) {
             path: '/paynet/api/v2/status/<endpointid>',
             data: data,
             controlFields: [['login'], ['client_orderid'], ['orderid'], ['control']]
-        }, function (err, data) {
+        }, function (err, resData) {
             if (err) {
+                logger.error('PreauthStatus request error', {data: data, err: (err && err.stack || err)});
                 reject(err && err.stack || err);
-            } else if (data.type === 'status-response') {
-                if (data.status === 'declined' || data.status === 'error' || data.status === 'filtered') {
-                    outData = {err: {msg: data['error-message'],  status:  data.status, code: data['error-code'], data: data}};
+            } else if (resData.type === 'status-response') {
+                if (resData.status === 'declined' || resData.status === 'error' || resData.status === 'filtered') {
+                    logger.error('PreauthStatus rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData});
+                    outData = {err: {msg: resData['error-message'],  status:  resData.status, code: resData['error-code'], data: resData}};
                 } else {
                     outData = {
                         data: {
-                            pneReqSerialNumber: data['serial-number'],
-                            transactionUuid: data['merchant-order-id'],
-                            preauthStatusPneId: data['paynet-order-id'],
-                            status: data.status,
-                            data: data
+                            pneReqSerialNumber: resData['serial-number'],
+                            transactionUuid: resData['merchant-order-id'],
+                            preauthStatusPneId: resData['paynet-order-id'],
+                            status: resData.status,
+                            data: resData
                         }
                     };
 
-                    if (data.status === 'approved') {
+                    if (resData.status === 'approved') {
+                        logger.info('PreauthStatus approved', {data: data, resData: resData});
                         outData.data.approved = true;
                         outData.data.card = {
-                            cardType: data['card-type'],
-                            bankName: data['bank-name'],
-                            lastFourDigits: data['last-four-digits']
+                            cardType: resData['card-type'],
+                            bankName: resData['bank-name'],
+                            lastFourDigits: resData['last-four-digits']
                         }
                     } else {
+                        logger.debug('PreauthStatus processing', {data: data, resData: resData});
                         outData.data.processing = true;
                     }
                 }
 
                 resolve(outData);
             } else {
-                reject({err: 'Error!', data: data});
+                logger.error('PreauthStatus rejected with unknown error', {data: data, resData: resData});
+                reject({err: 'Error!', data: resData});
             }
         });
     });

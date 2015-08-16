@@ -2,6 +2,7 @@
 
 var _ = require('lodash-node');
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('wireHelper');
 
 var callMe = require(__modulesCustom + 'callMe');
 
@@ -35,11 +36,6 @@ callMe.on('doWireTransfer', function (data) {
                             callMe.poll('doWireTransferStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
                         });
                 }
-            },
-            function (err) {
-                console.log('doWireTransfer err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });
@@ -61,11 +57,6 @@ callMe.on('doWireTransferStatus', function (data) {
                         return when.reject();
                     }
                 }
-            },
-            function (err) {
-                console.log('doWireTransferStatus err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });

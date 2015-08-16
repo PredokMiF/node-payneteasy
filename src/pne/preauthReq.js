@@ -1,6 +1,7 @@
 "use strict";
 
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('preauthReq');
 
 var pneReq = require('./req');
 
@@ -75,23 +76,27 @@ function preauthReq(data) {
             path: '/paynet/api/v2/preauth-form/<endpointid>',
             data: data,
             controlFields: [['endpointid'], ['client_orderid'], (data.amount*100).toFixed(0), ['email'], ['control']]
-        }, function (err, data) {
+        }, function (err, resData) {
             if (err) {
+                logger.error('Preauth request error', {data: data, err: (err && err.stack || err)});
                 reject(err && err.stack || err);
-            } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code'], data: data}});
-            } else if (data.type === 'async-form-response') {
+            } else if (resData.type === 'validation-error' || resData.type === 'error') {
+                logger.error('Preauth rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData});
+                resolve({err: {msg: resData['error-message'], code: resData['error-code'], data: resData}});
+            } else if (resData.type === 'async-form-response') {
+                logger.info('Preauth resolved', {data: data, resData: resData});
                 resolve({
                     data: {
-                        pneReqSerialNumber: data['serial-number'],
-                        transactionUuid: data['merchant-order-id'],
-                        preauthPneId: data['paynet-order-id'],
-                        url: data['redirect-url'],
-                        data: data
+                        pneReqSerialNumber: resData['serial-number'],
+                        transactionUuid: resData['merchant-order-id'],
+                        preauthPneId: resData['paynet-order-id'],
+                        url: resData['redirect-url'],
+                        data: resData
                     }
                 });
             } else {
-                reject({err: 'Error!', data: data});
+                logger.error('Preauth rejected with unknown error', {data: data, resData: resData});
+                reject({err: 'Error!', data: resData});
             }
         });
     });

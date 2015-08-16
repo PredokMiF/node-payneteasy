@@ -34,7 +34,7 @@ var CONFIG = {
 
     LOGGER: {
         DIR: 'logs',
-        MAX_FILE_SIZE: 1024,
+        MAX_FILE_SIZE: 1024 * 1024, // 1 mb
         LEVELS: ['debug', 'info', 'warn', 'error']
     }
 

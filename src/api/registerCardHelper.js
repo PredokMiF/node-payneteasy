@@ -2,6 +2,7 @@
 
 var _ = require('lodash-node');
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('registerCardHelper');
 
 var callMe = require(__modulesCustom + 'callMe');
 
@@ -42,11 +43,6 @@ callMe.on('doRegCard', function (data) {
                             wireHelper(data);
                         });
                 }
-            },
-            function (err) {
-                console.log('doReturn err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });

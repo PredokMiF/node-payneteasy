@@ -2,6 +2,7 @@
 
 var _ = require('lodash-node');
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('returnHelper');
 
 var callMe = require(__modulesCustom + 'callMe');
 
@@ -34,11 +35,6 @@ callMe.on('doReturn', function (data) {
                             callMe.poll('doReturnStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
                         });
                 }
-            },
-            function (err) {
-                console.log('doReturn err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });
@@ -54,11 +50,6 @@ callMe.on('doReturnStatus', function (data) {
                     daoTransactionStepCreate.create('returnStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
                     return response.data.approved ? when.resolve() : when.reject()
                 }
-            },
-            function (err) {
-                console.log('doReturnStatus err');
-                console.log(err);
-                return when.reject(err);
             }
         );
 });

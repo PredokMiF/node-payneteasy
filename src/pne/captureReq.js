@@ -1,6 +1,7 @@
 "use strict";
 
 var when = require('when');
+var logger = require(__modulesCustom + 'logger')('captureReq');
 
 var CONFIG = require(__cfg);
 var pneReq = require('./req');
@@ -37,22 +38,26 @@ function captureReq(data) {
             path: '/paynet/api/v2/capture/<endpointid>',
             data: data,
             controlFields: [['login'], ['client_orderid'], ['orderid'], (data.amount*100).toFixed(0), data.currency, ['control']]
-        }, function (err, data) {
+        }, function (err, resData) {
             if (err) {
+                logger.error('Capture request error', {data: data, err: (err && err.stack || err)});
                 reject(err && err.stack || err);
-            } else if (data.type === 'validation-error' || data.type === 'error') {
-                resolve({err: {msg: data['error-message'], code: data['error-code'], data: data}});
-            } else if (data.type === 'async-response') {
+            } else if (resData.type === 'validation-error' || resData.type === 'error') {
+                logger.error('Capture rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData});
+                resolve({err: {msg: resData['error-message'], code: resData['error-code'], data: resData}});
+            } else if (resData.type === 'async-response') {
+                logger.info('Capture resolved', {data: data, resData: resData});
                 resolve({
                     data: {
-                        pneReqSerialNumber: data['serial-number'],
-                        transactionUuid: data['merchant-order-id'],
-                        capturePneId: data['paynet-order-id'],
-                        data: data
+                        pneReqSerialNumber: resData['serial-number'],
+                        transactionUuid: resData['merchant-order-id'],
+                        capturePneId: resData['paynet-order-id'],
+                        data: resData
                     }
                 });
             } else {
-                reject({err: 'Error!', data: data});
+                logger.error('Capture rejected with unknown error', {data: data, resData: resData});
+                reject({err: 'Error!', data: resData});
             }
         });
     });

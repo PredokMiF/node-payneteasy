@@ -84,7 +84,19 @@ app.use(function (err, req, res, next) {
 
     res.status(status);
     res.send(outErrObj);
-    logger.error('response error', {method: req.method, path: req.path, status: res.statusCode, data:outErrObj});
+    logger.error(
+        'response error',
+        {
+            method: req.method,
+            path: req.path,
+            status: res.statusCode,
+            session: req.session,
+            urlParams: req.params,
+            query: req.query,
+            body: req.body,
+            data:outErrObj
+        }
+    );
 });
 
 
