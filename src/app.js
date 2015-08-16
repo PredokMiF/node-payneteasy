@@ -1,7 +1,9 @@
 var path = require('path');
+var util = require('util');
+
+var logger = require(__modulesCustom + 'logger')('app');
 
 var express = require('express');
-var logger = require('morgan');
 var bodyParser = require('body-parser');
 
 var cfg = require(__cfg);
@@ -13,7 +15,23 @@ var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/apidoc', express.static(path.join(__dirname, '../', 'apidoc')));
-app.use(logger('dev'));
+app.use(function(req, res, next){
+    var end;
+    req._startTime = new Date;
+    end = res.end;
+    res.end = function(chunk, encoding) {
+        var message;
+        res.end = end;
+        res.end(chunk, encoding);
+
+        if (res.statusCode === 200) {
+            logger.debug({method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
+        } else {
+            logger.error({method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
+        }
+    };
+    return next();
+});
 
 app.get('/*', function(req, res, next){
     res.setHeader('Last-Modified', (new Date()).toUTCString());

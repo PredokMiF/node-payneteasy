@@ -30,6 +30,12 @@ var CONFIG = {
         DOMAIN: '127.0.0.1',
         PORT: 8088,
         PATH: '/api/v0.3.0/payment/status-cb'
+    },
+
+    LOGGER: {
+        DIR: 'logs',
+        MAX_FILE_SIZE: 1024,
+        LEVELS: ['debug', 'info', 'warn', 'error']
     }
 
 };

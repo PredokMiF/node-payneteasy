@@ -9,6 +9,7 @@ var when = require('when');
 var pgpLib = require('pg-promise');
 var DbUpdater = require('dbupdater');
 var callMe = require(__modulesCustom + 'callMe');
+var logger = require(__modulesCustom + 'logger');
 
 var CFG_KEY = '-cfg';
 var CONFIG;
@@ -45,7 +46,6 @@ module.exports = when.promise(function(resolve, reject){
                 port: Joi.number().integer()
             }),
 
-            // DB_UPDATER
             DB_UPDATER_SRC: Joi.string(),
 
             PAYNETEASY: Joi.object().keys({
@@ -55,15 +55,21 @@ module.exports = when.promise(function(resolve, reject){
                     hostname: Joi.string().min(1).required(),
                     control: Joi.string().guid().required()
                 }).requiredKeys('login', 'endpointid', 'hostname', 'control'))
-                //CLIENT_ORDER_ID: Joi.string().min(1).max(128)
             }).requiredKeys('ENDPOINTS'),
 
             CLIENT_SERVER: Joi.object().keys({
                 DOMAIN: Joi.string().min(1),
                 PORT: Joi.number().integer(),
                 PATH: Joi.string().min(1)
-            })
-        }).requiredKeys('DB_UPDATER_SRC', 'PAYNETEASY', 'CLIENT_SERVER').without('DB_CONN_STR', ['DB_CONN_OBJ']);
+            }),
+
+            LOGGER: Joi.object().keys({
+                DIR: Joi.string().min(1),
+                MAX_FILE_SIZE: Joi.number().integer().min(1),
+                LEVELS: Joi.array().min(1).items(Joi.string().valid('debug', 'info', 'warn', 'error'))
+            }).requiredKeys('DIR', 'MAX_FILE_SIZE', 'LEVELS')
+
+        }).requiredKeys('DB_UPDATER_SRC', 'PAYNETEASY', 'CLIENT_SERVER', 'LOGGER').without('DB_CONN_STR', ['DB_CONN_OBJ']);
 
         Joi.validate(
             require(path.join(__cfgDir, 'cfg', process.argv[cfgKeyPos + 1])),
@@ -74,13 +80,24 @@ module.exports = when.promise(function(resolve, reject){
                     reject(err);
                 } else {
                     cfg.DB_CONN = cfg.DB_CONN_OBJ || cfg.DB_CONN_STR;
-                    // Самый первый вызов
+                    // Самый первый вызов. На самом деле вызываться для получения конфига будет именно __cfg, туда мы и копируем наши параметры
                     CONFIG = _.defaults(require(__cfg), cfg);
                     resolve(cfg);
                 }
             }
         );
 })
+
+    /* ================================================================================================= */
+    /* ============================================= logger ============================================ */
+    /* ================================================================================================= */
+    .then(function () {
+        logger.init({
+            LOG_DIR: CONFIG.LOGGER.DIR,
+            MAXSIZE: CONFIG.LOGGER.MAX_FILE_SIZE,
+            LOG_LEVELS: CONFIG.LOGGER.LEVELS
+        });
+    })
 
     /* ================================================================================================= */
     /* ============================================= pgpLib ============================================ */

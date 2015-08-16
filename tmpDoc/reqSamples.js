@@ -1,7 +1,6 @@
 "use strict";
 
 var path = require('path');
-var debug = require('debug')('payneteasy:server');
 var http = require('http');
 
 // Глобальные костанты

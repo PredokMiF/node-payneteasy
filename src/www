@@ -3,7 +3,6 @@
 "use strict";
 
 var path = require('path');
-var debug = require('debug')('payneteasy:server');
 var http = require('http');
 
 // Глобальные костанты
@@ -15,19 +14,23 @@ global.__pne = path.join(__dirname, 'pne') + path.sep;
 global.__dao = path.join(__dirname, 'dao') + path.sep;
 global.__util = path.join(__dirname, 'util') + path.sep;
 
+var logger;
 
 require(__initCfg).then(
     createServer,
     function (err) {
-        if (err instanceof Error) {
-            console.error(err.stack);
+        logger = require(__modulesCustom + 'logger')('www');
+
+        if (logger) {
+            logger.error(err)
         } else {
-            console.error(err);
+            console.error((err instanceof Error) ? err.stack : err);
         }
     }
 );
 
 function createServer () {
+    logger = require(__modulesCustom + 'logger')('www');
     var app = require('./app');
 
     var port = normalizePort(process.env.PORT || '3000');
@@ -50,11 +53,11 @@ function createServer () {
 
         switch (error.code) {
             case 'EACCES':
-                console.error(bind + ' requires elevated privileges');
+                logger.error(bind + ' requires elevated privileges');
                 process.exit(1);
                 break;
             case 'EADDRINUSE':
-                console.error(bind + ' is already in use');
+                logger.error(bind + ' is already in use');
                 process.exit(1);
                 break;
             default:
@@ -67,7 +70,7 @@ function createServer () {
         var bind = typeof addr === 'string'
             ? 'pipe ' + addr
             : 'port ' + addr.port;
-        debug('Listening on ' + bind);
+        logger.info('Listening on ' + bind);
     }
 }
 
