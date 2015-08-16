@@ -8,13 +8,13 @@ var bodyParser = require('body-parser');
 
 var cfg = require(__cfg);
 var HandledError = require(__modulesCustom + 'handledError');
-var ApiSecurity = require(__modulesCustom + 'api-security');
 
 var app = express();
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use('/apidoc', express.static(path.join(__dirname, '../', 'apidoc')));
+
 app.use(function(req, res, next){
     var end;
     req._startTime = new Date;
@@ -25,9 +25,9 @@ app.use(function(req, res, next){
         res.end(chunk, encoding);
 
         if (res.statusCode === 200) {
-            logger.debug({method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
+            logger.debug('http logger', {method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
         } else {
-            logger.error({method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
+            logger.error('http logger', {method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
         }
     };
     return next();
@@ -84,6 +84,7 @@ app.use(function (err, req, res, next) {
 
     res.status(status);
     res.send(outErrObj);
+    logger.error('response error', {method: req.method, path: req.path, status: res.statusCode, data:outErrObj});
 });
 
 
