@@ -60,7 +60,7 @@ var DEV = app.get('env') === 'development';
 
 // Отлавливаем ошибку
 app.use(function (err, req, res, next) {
-    var status, outErrObj;
+    var status, outErrObj, logErrObj;
 
     if (err instanceof HandledError) {
         status = err.status || 200;
@@ -68,8 +68,14 @@ app.use(function (err, req, res, next) {
             err: {
                 msg: err.message,
                 extra: err.extra,
-                //extra: JSON.stringify(err.extra, null, 4),
                 stack: DEV && err.stack
+            }
+        };
+        logErrObj = {
+            err: {
+                msg: err.message,
+                extra: err.extra,
+                stack: err.stack
             }
         };
     } else {
@@ -80,6 +86,12 @@ app.use(function (err, req, res, next) {
                 stack: DEV && err.stack
             }
         };
+        logErrObj = {
+            err: {
+                msg: err.message || err,
+                stack: err.stack
+            }
+        }
     }
 
     res.status(status);
@@ -94,7 +106,7 @@ app.use(function (err, req, res, next) {
             urlParams: req.params,
             query: req.query,
             body: req.body,
-            data:outErrObj
+            data: logErrObj
         }
     );
 });
