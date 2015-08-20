@@ -25,9 +25,25 @@ app.use(function(req, res, next){
         res.end(chunk, encoding);
 
         if (res.statusCode === 200) {
-            logger.debug('http logger', {method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
+            logger.debug('http logger', {
+                method: req.method,
+                path: req.path,
+                status: res.statusCode,
+                urlParams: req.params,
+                query: req.query,
+                body: req.body,
+                execTime: (new Date - req._startTime)
+            });
         } else {
-            logger.error('http logger', {method: req.method, path: req.path, status: res.statusCode, execTime: (new Date - req._startTime)});
+            logger.error('http logger', {
+                method: req.method,
+                path: req.path,
+                status: res.statusCode,
+                urlParams: req.params,
+                query: req.query,
+                body: req.body,
+                execTime: (new Date - req._startTime)
+            });
         }
     };
     return next();
