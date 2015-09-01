@@ -57,7 +57,9 @@ function pneReq (cfg, cb) {
         }
     };
 
+    reqParams.data = data;
     logger.debug('PNE request started', reqParams);
+    delete reqParams.data;
 
     var postReqHandler = https.request(
         reqParams,
@@ -85,7 +87,7 @@ function pneReq (cfg, cb) {
     );
 
     postReqHandler.on('error', function (err) {
-        logger.error('PNE reques error',  {reqParams: reqParams, err: err && err.stack || err});
+        logger.error('PNE request error',  {reqParams: reqParams, err: err && err.stack || err});
         cb(err, undefined);
     });
     postReqHandler.write(data);

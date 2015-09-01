@@ -13,6 +13,7 @@ var pneReq = require('./req');
  */
 function returnReq(data) {
     // id терминала PNE
+    var originalData = data;
     var endpointid = data.endpointid;
     var endpointCfg = CONFIG && CONFIG.PAYNETEASY && CONFIG.PAYNETEASY.ENDPOINTS && CONFIG.PAYNETEASY.ENDPOINTS[endpointid] || {};
 
@@ -42,13 +43,13 @@ function returnReq(data) {
             controlFields: [['login'], ['client_orderid'], ['orderid'], (data.amount*100).toFixed(0), data.currency, ['control']]
         }, function (err, resData) {
             if (err) {
-                logger.error('Return request error', {data: data, err: (err && err.stack || err)});
+                logger.error('Return request error', {data: data, err: (err && err.stack || err)}, originalData.userUuid, originalData.transactionUuid);
                 reject(err && err.stack || err);
             } else if (resData.type === 'validation-error' || resData.type === 'error') {
-                logger.error('Return rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData});
+                logger.error('Return rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData}, originalData.userUuid, originalData.transactionUuid);
                 resolve({err: {msg: resData['error-message'], code: resData['error-code'], data: resData}});
             } else if (resData.type === 'async-response') {
-                logger.info('Return resolved', {data: data, resData: resData});
+                logger.info('Return resolved', {data: data, resData: resData}, originalData.userUuid, originalData.transactionUuid);
                 resolve({
                     data: {
                         pneReqSerialNumber: resData['serial-number'],
@@ -58,7 +59,7 @@ function returnReq(data) {
                     }
                 });
             } else {
-                logger.error('Return rejected with unknown error', {data: data, resData: resData});
+                logger.error('Return rejected with unknown error', {data: data, resData: resData}, originalData.userUuid, originalData.transactionUuid);
                 reject({err: 'Error!', data: resData});
             }
         });

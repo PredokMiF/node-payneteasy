@@ -21,7 +21,7 @@ var clientServerReqEvents = _.reduce(['transaction resolve', 'transaction reject
  *
  * @param {Object} reqData
  * @param {String} reqData.event имя команды на клиентском сервера
- * @param {Array[]} [reqData.poolTime] имя команды на клиентском сервера
+ * @param {Array[]} [reqData.poolTime] периодичность повторов
  * @param {Integer} reqData.poolTime[] таймаут повторной попытки отправки
  * @param {Object} reqData.data данные команды, которые нужно передать на клиентский сервер
  */
@@ -54,11 +54,11 @@ function doClientServerReqCb (reqData) {
             form: form
         }, function (err, res, body) {
             if (err || res.statusCode !== 200 || !body || body.err) {
-                logger.error('Request to server error', {method: method, url: url, form: form, res: res, resBody: body, err: (err || body && body.err || (res.statusCode+':'+res.statusMessage))});
+                logger.error('Request to server error', {method: method, url: url, form: form, res: res, resBody: body, err: (err || body && body.err || (res.statusCode+':'+res.statusMessage))}, reqData.data.userUuid, reqData.data.transactionUuid);
                 reject(err || body && body.err || (res.statusCode+':'+res.statusMessage));
                 return;
             }
-            logger.debug('Request to server success', {method: method, url: url, form: form, res: res, resBody: body});
+            logger.debug('Request to server success', {method: method, url: url, form: form, res: res, resBody: body}, reqData.data.userUuid, reqData.data.transactionUuid);
             resolve();
         });
     });

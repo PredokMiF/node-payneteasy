@@ -33,7 +33,7 @@ app.use(function(req, res, next){
                 query: req.query,
                 body: req.body,
                 execTime: (new Date - req._startTime)
-            });
+            }, req.body.userUuid, req.body.transactionUuid);
         } else {
             logger.error('http logger', {
                 method: req.method,
@@ -43,7 +43,7 @@ app.use(function(req, res, next){
                 query: req.query,
                 body: req.body,
                 execTime: (new Date - req._startTime)
-            });
+            }, req.body.userUuid, req.body.transactionUuid);
         }
     };
     return next();
@@ -123,7 +123,7 @@ app.use(function (err, req, res, next) {
             query: req.query,
             body: req.body,
             data: logErrObj
-        }
+        }, req.body.userUuid, req.body.transactionUuid
     );
 });
 

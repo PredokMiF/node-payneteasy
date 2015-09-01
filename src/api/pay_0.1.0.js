@@ -171,7 +171,7 @@ module.exports = function (app) {
             serverCallbackUrl: 's min 2'
         }
     }, function (req, res, next) {
-        logger.info('Lets try start transaction', req.body);
+        logger.info('Lets try start transaction', req.body, req.body.userUuid, req.body.transactionUuid);
         return daoTransactionCreate.create(req.body)
             .then(function () {
                 return when.promise(function(resolve, reject){
@@ -193,7 +193,7 @@ module.exports = function (app) {
                     }
                 });
             }, function (err) {
-                logger.error('Start transaction filed', err);
+                logger.error('Start transaction filed', err, req.body.userUuid, req.body.transactionUuid);
             });
 
             /*var t = {

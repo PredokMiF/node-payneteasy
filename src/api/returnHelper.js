@@ -2,7 +2,7 @@
 
 var _ = require('lodash-node');
 var when = require('when');
-var logger = require(__modulesCustom + 'logger')('returnHelper');
+//var logger = require(__modulesCustom + 'logger')('returnHelper');
 
 var callMe = require(__modulesCustom + 'callMe');
 

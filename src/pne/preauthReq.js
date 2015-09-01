@@ -14,6 +14,7 @@ var pneReq = require('./req');
  */
 function preauthReq(data) {
     // id терминала PNE
+    var originalData = data;
     var endpointid = data.endpointid;
 
     data = {
@@ -78,13 +79,13 @@ function preauthReq(data) {
             controlFields: [['endpointid'], ['client_orderid'], (data.amount*100).toFixed(0), ['email'], ['control']]
         }, function (err, resData) {
             if (err) {
-                logger.error('Preauth request error', {data: data, err: (err && err.stack || err)});
+                logger.error('Preauth request error', {data: data, err: (err && err.stack || err)}, originalData.userUuid, originalData.transactionUuid);
                 reject(err && err.stack || err);
             } else if (resData.type === 'validation-error' || resData.type === 'error') {
-                logger.error('Preauth rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData});
+                logger.error('Preauth rejected', {data: data, errMsg: resData['error-message'], errCode: resData['error-code'], resData: resData}, originalData.userUuid, originalData.transactionUuid);
                 resolve({err: {msg: resData['error-message'], code: resData['error-code'], data: resData}});
             } else if (resData.type === 'async-form-response') {
-                logger.info('Preauth resolved', {data: data, resData: resData});
+                logger.info('Preauth resolved', {data: data, resData: resData}, originalData.userUuid, originalData.transactionUuid);
                 resolve({
                     data: {
                         pneReqSerialNumber: resData['serial-number'],
@@ -95,7 +96,7 @@ function preauthReq(data) {
                     }
                 });
             } else {
-                logger.error('Preauth rejected with unknown error', {data: data, resData: resData});
+                logger.error('Preauth rejected with unknown error', {data: data, resData: resData}, originalData.userUuid, originalData.transactionUuid);
                 reject({err: 'Error!', data: resData});
             }
         });
