@@ -114,23 +114,23 @@ module.exports = function (app) {
             // Перевод
 
             endpointid: 'n reqKey toNum isCeil min 1',
-            transactionUuid: 's reqKey min 1',
+            transactionUuid: 's reqKey trim min 1',
             amount: 'n reqKey toNum toFixed 2 min 0.01',
             comission: 'n reqKey toNum toFixed 2 min 0.01',
             NDS: 'n def 0 toNum toFixed 2 min 0',
-            currency: 's def RUB min 2',
-            orderDesc: 's reqKey min 2',
-            makeRebillComment: 's min 2',
-            returnComment: 's def TRANSACTION_ERROR',
+            currency: 's def RUB trim min 2',
+            orderDesc: 's reqKey trim min 2',
+            makeRebillComment: 's trim min 2',
+            returnComment: 's def TRANSACTION_ERROR trim min 1',
 
             // Плательщик
 
-            userUuid: 's reqKey min 1',
-            payer_firstName: 's min 1',
-            payer_lastName: 's min 1',
-            payer_fullname: 's reqKey min 1',
+            userUuid: 's reqKey trim min 1',
+            payer_firstName: 's trim min 1',
+            payer_lastName: 's trim min 1',
+            payer_fullname: 's reqKey trim min 1',
             //payer_birthday: 'd', // нет валидатора
-            payer_identityDocument: ['s reqKey min 7',
+            payer_identityDocument: ['s reqKey trim min 7',
                 function(val){
                     var parts = val.split(',');
                     // Д.б. две части <ТИП_ДОК>,<СЕРИЯ_И_НОМЕР_ДОКУМЕНТА>
@@ -145,30 +145,30 @@ module.exports = function (app) {
                 }],
             payer_ssn: 'n min 1',
             payer_email: 's reqKey min 1 trim toLower',
-            payer_phone: 's min 1',
-            payer_cellPhone: 's min 1',
-            payer_country: 's def RU min 2',
-            payer_state: 's min 1',
-            payer_city: 's reqKey min 1',
-            payer_zipCode: 's reqKey min 1',
-            payer_address1: 's reqKey min 1',
-            payer_ipaddress: 's reqKey min 1',
-            payer_cardId: 's null def null min 1',
-            payer_cardCvv2: 's min 1',
+            payer_phone: 's trim min 1',
+            payer_cellPhone: 's trim min 1',
+            payer_country: 's def RU trim min 2',
+            payer_state: 's trim min 1',
+            payer_city: 's reqKey trim min 1',
+            payer_zipCode: 's reqKey trim min 1',
+            payer_address1: 's reqKey trim min 1',
+            payer_ipaddress: 's reqKey trim min 1',
+            payer_cardId: 's null def null trim min 1',
+            payer_cardCvv2: 's trim min 1',
 
             // Получатель
 
-            recipient_name: 's reqKey min 1',
-            recipient_inn: 's reqKey min 1',
-            recipient_accountNumber: 's reqKey min 1',
-            recipient_bankBic: 's reqKey min 1',
+            recipient_name: 's reqKey trim min 1',
+            recipient_inn: 's reqKey trim min 1',
+            recipient_accountNumber: 's reqKey trim min 1',
+            recipient_bankBic: 's reqKey trim min 1',
 
             // Остальное
 
             registerCard: 'b def false convert all',
-            redirectUrl: 's reqKey min 2',
-            siteUrl: 's min 2',
-            serverCallbackUrl: 's min 2'
+            redirectUrl: 's reqKey trim min 2',
+            siteUrl: 's trim min 2',
+            serverCallbackUrl: 's trim min 2'
         }
     }, function (req, res, next) {
         logger.info('Lets try start transaction', req.body, req.body.userUuid, req.body.transactionUuid);
@@ -195,66 +195,6 @@ module.exports = function (app) {
             }, function (err) {
                 logger.error('Start transaction filed', err, req.body.userUuid, req.body.transactionUuid);
             });
-
-            /*var t = {
-
-                // Накапливаемые поля в процессе перевода платежа
-
-                preauthPneId: null,
-                capturePneId: null,
-                wireTransferPneId: null,
-                returnPneId: null,
-                cardId: null,
-                cardType: null,
-                cardBankName: null,
-                cardLastFourDigits: null,
-
-                // Перевод
-
-                endpointid: req.body.endpointid,
-                transactionUuid: req.body.transactionUuid,
-                amount: req.body.amount,
-                comission: req.body.comission,
-                NDS: req.body.NDS,
-                currency: req.body.currency,
-                orderDesc: req.body.orderDesc,
-                makeRebillComment: req.body.makeRebillComment,
-                returnComment: req.body.returnComment,
-
-                // Плательщик
-
-                userUuid: req.body.userUuid,
-                payer_firstName: req.body.payer_firstName,
-                payer_lastName: req.body.payer_lastName,
-                payer_fullname: req.body.payer_fullname,
-                //payer_birthday: 'd', // нет валидатора
-                payer_identityDocument: req.body.payer_identityDocument,
-                payer_ssn: req.body.payer_ssn,
-                payer_email: req.body.payer_email,
-                payer_phone: req.body.payer_phone,
-                payer_cellPhone: req.body.payer_cellPhone,
-                payer_country: req.body.payer_country,
-                payer_state: req.body.payer_state,
-                payer_city: req.body.payer_city,
-                payer_zipCode: req.body.payer_zipCode,
-                payer_address1: 's reqKey min 1',
-                payer_ipaddress: req.body.payer_ipaddress,
-                payer_cardId: req.body.payer_cardId,
-                payer_cardCvv2: 's min 1',
-
-                // Получатель
-
-                recipient_name: req.body.recipient_name,
-                recipient_inn: req.body.recipient_inn,
-                recipient_accountNumber: req.body.recipient_accountNumber,
-                recipient_bankBic: req.body.recipient_bankBic,
-
-                // Остальное
-
-                redirectUrl: req.body.redirectUrl,
-                siteUrl: req.body.siteUrl,
-                serverCallbackUrl: req.body.serverCallbackUrl
-            };*/
     }));
 
     function preauth (data) {
