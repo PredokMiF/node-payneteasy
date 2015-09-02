@@ -76,10 +76,10 @@ function pneReq (cfg, cb) {
                         out[key] = out[key].replace(/\n$/, '');
                     });
 
-                    logger.debug('PNE request status 200', {reqParams: reqParams, out: out});
+                    logger.debug('PNE request status 200', {reqParams: reqParams, out: out, data: data});
                     cb(null, out);
                 } else {
-                    logger.error('PNE request status ' + res.statusCode, {reqParams: reqParams, out: out});
+                    logger.error('PNE request status ' + res.statusCode, {reqParams: reqParams, out: out, data: data});
                     cb(out, undefined);
                 }
             });
@@ -87,7 +87,7 @@ function pneReq (cfg, cb) {
     );
 
     postReqHandler.on('error', function (err) {
-        logger.error('PNE request error',  {reqParams: reqParams, err: err && err.stack || err});
+        logger.error('PNE request error',  {reqParams: reqParams, err: err && err.stack || err, data: data});
         cb(err, undefined);
     });
     postReqHandler.write(data);
