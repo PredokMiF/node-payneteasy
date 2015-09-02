@@ -69,6 +69,7 @@ function pneReq (cfg, cb) {
                 out = out + chunk;
             });
             res.on('end', function () {
+                reqParams.data = controlFields;
                 if (res.statusCode === 200) {
                     out = querystring.parse(out);
 
@@ -87,6 +88,7 @@ function pneReq (cfg, cb) {
     );
 
     postReqHandler.on('error', function (err) {
+        reqParams.data = controlFields;
         logger.error('PNE request error',  {reqParams: reqParams, err: err && err.stack || err, data: data});
         cb(err, undefined);
     });
