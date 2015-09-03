@@ -25,7 +25,7 @@ callMe.on('doReturn', function (data) {
                 if (response.err) {
                     daoTransactionStepCreate.create('return', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                 } else {
-                    clientServerHelpers.rejectTransaction(data);
+                    clientServerHelpers.rejectTransaction(data, response.err.msg);
                     data.returnPneId = response.data.returnPneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){

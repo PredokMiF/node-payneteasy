@@ -259,7 +259,7 @@ module.exports = function (app) {
                 function (response) {
                     if (response.err) {
                         daoTransactionStepCreate.create('preauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
-                        clientServerHelpers.rejectTransaction(data);
+                        clientServerHelpers.rejectTransaction(data, response.err.msg);
                         return when.resolve();
                     } else if (response.data.processing) {
                         daoTransactionStepCreate.create('preauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);
@@ -364,7 +364,7 @@ module.exports = function (app) {
                 function (response) {
                     if (response.err) {
                         daoTransactionStepCreate.create('makeRebillPreauthStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
-                        clientServerHelpers.rejectTransaction(data);
+                        clientServerHelpers.rejectTransaction(data, response.err.msg);
                         return when.resolve();
                     } else if (response.data.processing) {
                         daoTransactionStepCreate.create('makeRebillPreauthStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data);

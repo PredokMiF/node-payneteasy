@@ -78,7 +78,7 @@ function resolveTransaction (data) {
     doClientServerReq(reqData);
 }
 
-function rejectTransaction (data) {
+function rejectTransaction (data, errMsg) {
     var reqData = {
         event: 'transaction reject',
         //poolTime: [0, 5, 5, 5, 5, 10, 10, 10, 10, 10, 10, 10, 20, 20, 20, 20, 20, 20, 30, 30, 30, 30, 30, 30, 60],
@@ -88,6 +88,10 @@ function rejectTransaction (data) {
             userUuid: data.userUuid
         }
     };
+
+    if (errMsg) {
+        reqData.data.errMsg = errMsg;
+    }
 
     doClientServerReq(reqData);
 }
