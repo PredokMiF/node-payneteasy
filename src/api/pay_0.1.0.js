@@ -151,7 +151,7 @@ module.exports = function (app) {
             payer_state: 's trim min 1',
             payer_city: 's reqKey trim min 1',
             payer_zipCode: 's reqKey trim min 1',
-            payer_address1: 's def РФ trim min 1',
+            payer_address1: 's trim min 1',
             payer_ipaddress: 's reqKey trim min 1',
             payer_cardId: 's null def null trim min 1',
             payer_cardCvv2: 's trim min 1',
