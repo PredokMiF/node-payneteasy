@@ -81,7 +81,7 @@ module.exports = function (app) {
      * @apiParam {String} [payer_state] Customer’s state (two-letter US state code). Please see Appendix A for a list of valid US state codes. Not applicable outside the US
      * @apiParam {String} payer_city Город плательщика
      * @apiParam {String} payer_zipCode Почтовый индекс плательщика
-     * @apiParam {String} payer_address1 Адрес плательщика
+     * @apiParam {String} [payer_address1] Адрес плательщика
      * @apiParam {String} payer_ipaddress IP адрес плательщика
      * @apiParam {String} [payer_cardId] ID привязаной карты плательщика
      * @apiParam {String} [payer_cardCvv2] CVV2 привязаной карты плательщика
@@ -151,7 +151,7 @@ module.exports = function (app) {
             payer_state: 's trim min 1',
             payer_city: 's reqKey trim min 1',
             payer_zipCode: 's reqKey trim min 1',
-            payer_address1: 's reqKey trim min 1',
+            payer_address1: 's def РФ trim min 1',
             payer_ipaddress: 's reqKey trim min 1',
             payer_cardId: 's null def null trim min 1',
             payer_cardCvv2: 's trim min 1',
