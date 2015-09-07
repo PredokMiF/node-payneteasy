@@ -26,7 +26,7 @@ callMe.on('doCapture', function (data) {
             function (response) {
                 if (response.err) {
                     daoTransactionStepCreate.create('capture', response.err.data['serial-number'], data.transactionUuid, response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
-                    returnHelper(data);
+                    returnHelper(data, response.err.msg);
                 } else {
                     data.capturePneId = response.data.capturePneId;
                     daoTransactionUpdate.update(data)
@@ -47,7 +47,7 @@ callMe.on('doCaptureStatus', function (data) {
             function (response) {
                 if (response.err) {
                     daoTransactionStepCreate.create('captureStatus', response.err.data['serial-number'], data.transactionUuid, data.capturePneId, data, response.err.msg, response.err.data);
-                    returnHelper(data);
+                    returnHelper(data, response.err.msg);
                     return when.resolve();
                 } else if (response) {
                     daoTransactionStepCreate.create('captureStatus', response.data.data['serial-number'], data.transactionUuid, data.capturePneId, data, null, response.data.data);

@@ -25,7 +25,7 @@ callMe.on('doWireTransfer', function (data) {
             function (response) {
                 if (response.err) {
                     daoTransactionStepCreate.create('wireTransfer', response.err.data['serial-number'], data.transactionUuid, response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
-                    returnHelper(data);
+                    returnHelper(data, response.err.msg);
                 } else {
                     data.wireTransferPneId = response.data.wireTransferPneId;
                     daoTransactionUpdate.update(data)
@@ -46,7 +46,7 @@ callMe.on('doWireTransferStatus', function (data) {
             function (response) {
                 if (response.err) {
                     daoTransactionStepCreate.create('wireTransferStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], data.wireTransferPneId, data, response.err.msg, response.err.data);
-                    returnHelper(data);
+                    returnHelper(data, response.err.msg);
                     return when.resolve();
                 } else if (response) {
                     daoTransactionStepCreate.create('wireTransferStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], data.wireTransferPneId, data, null, response.data.data);

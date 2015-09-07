@@ -14,7 +14,8 @@ var returnStatusReq = require(__pne + 'returnStatusReq');
 
 var clientServerHelpers = require('./clientServerHelpers');
 
-function doReq (data) {
+function doReq (data, errMsg) {
+    data.errMsg = errMsg;
     callMe.poll('doReturn', data.userUuid, [0,10,60,600,3600], data);
 }
 
@@ -25,7 +26,7 @@ callMe.on('doReturn', function (data) {
                 if (response.err) {
                     daoTransactionStepCreate.create('return', response.err.data['serial-number'], data.transactionUuid, response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                 } else {
-                    clientServerHelpers.rejectTransaction(data, response.err.msg);
+                    clientServerHelpers.rejectTransaction(data, data.errMsg);
                     data.returnPneId = response.data.returnPneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){
