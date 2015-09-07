@@ -25,13 +25,13 @@ callMe.on('doCapture', function (data) {
         .then(
             function (response) {
                 if (response.err) {
-                    daoTransactionStepCreate.create('capture', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    daoTransactionStepCreate.create('capture', response.err.data['serial-number'], data.transactionUuid, response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                     returnHelper(data);
                 } else {
                     data.capturePneId = response.data.capturePneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){
-                            daoTransactionStepCreate.create('capture', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data)
+                            daoTransactionStepCreate.create('capture', response.data.data['serial-number'], data.transactionUuid, response.data.data['paynet-order-id'], data, null, response.data.data)
                         })
                         .then(function(){
                             callMe.poll('doCaptureStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
@@ -46,11 +46,11 @@ callMe.on('doCaptureStatus', function (data) {
         .then(
             function (response) {
                 if (response.err) {
-                    daoTransactionStepCreate.create('captureStatus', response.err.data['serial-number'], response.err.data['merchant-order-id'], data.capturePneId, data, response.err.msg, response.err.data);
+                    daoTransactionStepCreate.create('captureStatus', response.err.data['serial-number'], data.transactionUuid, data.capturePneId, data, response.err.msg, response.err.data);
                     returnHelper(data);
                     return when.resolve();
                 } else if (response) {
-                    daoTransactionStepCreate.create('captureStatus', response.data.data['serial-number'], response.data.data['merchant-order-id'], data.capturePneId, data, null, response.data.data);
+                    daoTransactionStepCreate.create('captureStatus', response.data.data['serial-number'], data.transactionUuid, data.capturePneId, data, null, response.data.data);
                     if (response.data.approved) {
                         clientServerHelpers.resolveTransaction(data);
                         return when.resolve();

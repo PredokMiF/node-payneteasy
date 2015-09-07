@@ -24,13 +24,13 @@ callMe.on('doWireTransfer', function (data) {
         .then(
             function (response) {
                 if (response.err) {
-                    daoTransactionStepCreate.create('wireTransfer', response.err.data['serial-number'], response.err.data['merchant-order-id'], response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
+                    daoTransactionStepCreate.create('wireTransfer', response.err.data['serial-number'], data.transactionUuid, response.err.data['paynet-order-id'], data, response.err.msg, response.err.data);
                     returnHelper(data);
                 } else {
                     data.wireTransferPneId = response.data.wireTransferPneId;
                     daoTransactionUpdate.update(data)
                         .then(function(){
-                            daoTransactionStepCreate.create('wireTransfer', response.data.data['serial-number'], response.data.data['merchant-order-id'], response.data.data['paynet-order-id'], data, null, response.data.data)
+                            daoTransactionStepCreate.create('wireTransfer', response.data.data['serial-number'], data.transactionUuid, response.data.data['paynet-order-id'], data, null, response.data.data)
                         })
                         .then(function(){
                             callMe.poll('doWireTransferStatus', data.userUuid, [0,5,5,5,5,10,10,10,10,10,60,60,60,600,600,600,600,600,3600], data);
