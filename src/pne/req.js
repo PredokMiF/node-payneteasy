@@ -25,15 +25,25 @@ function pneReq (cfg, cb) {
         // Конфигурация запроса
         !cfg || !_.isPlainObject(cfg) ||
             // endpointid строка или число
-            (!_.isNumber(cfg.endpointid) && !_.isString(cfg.endpointid)) ||
-                // есть терминал для этого endpointid
-                !CONFIG.PAYNETEASY.ENDPOINTS.hasOwnProperty(cfg.endpointid) || !(endpointCfg = CONFIG.PAYNETEASY.ENDPOINTS[cfg.endpointid]) || !_.isPlainObject(endpointCfg) ||
-            // path передан и корректен
-            !_.isString(cfg.path) || !cfg.path.match(/^\/[a-z0-9\-\_]+[a-z0-9\-\_\/]*\<endpointid\>[a-z0-9\-\_\/]*$/i) ||
-            // data передан и корректен
-            !_.isPlainObject(cfg.data) || !_.every(cfg.data, function (val, key) { return _.isNumber(val) || _.isString(val)|| _.isNull(val)|| _.isUndefined(val);}) ||
-            // controlFields передан и корректен
-            !_.isArray(cfg.controlFields) || !_.every(cfg.controlFields, function(val){ return _.isString(val) || _.isNumber(val) || _.isArray(val) && val.length === 1 && _.isString(val[0]); }) ||
+            (!_.isNumber(cfg.endpointid) && !_.isString(cfg.endpointid))
+    ) {
+        logger.error('PNE:pneReq invalid base parameters', cfg);
+        throw new Error('PNE:pneReq invalid base parameters');
+    }
+    if (
+        // есть терминал для этого endpointid
+        !CONFIG.PAYNETEASY.ENDPOINTS.hasOwnProperty(cfg.endpointid) || !(endpointCfg = CONFIG.PAYNETEASY.ENDPOINTS[cfg.endpointid]) || !_.isPlainObject(endpointCfg)
+    ) {
+        logger.error('PNE:pneReq invalid or unknown endpointid', cfg);
+        throw new Error('PNE:pneReq invalid or unknown endpointid');
+    }
+    if (
+        // path передан и корректен
+        !_.isString(cfg.path) || !cfg.path.match(/^\/[a-z0-9\-\_]+[a-z0-9\-\_\/]*\<endpointid\>[a-z0-9\-\_\/]*$/i) ||
+        // data передан и корректен
+        !_.isPlainObject(cfg.data) || !_.every(cfg.data, function (val, key) { return _.isNumber(val) || _.isString(val)|| _.isNull(val)|| _.isUndefined(val);}) ||
+        // controlFields передан и корректен
+        !_.isArray(cfg.controlFields) || !_.every(cfg.controlFields, function(val){ return _.isString(val) || _.isNumber(val) || _.isArray(val) && val.length === 1 && _.isString(val[0]); }) ||
         // Колбэк запроса
         !_.isFunction(cb) || cb.length !== 2
     ) {
